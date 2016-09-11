@@ -1,10 +1,7 @@
----
-layout: post
-title: "欧洲人在日本"
-date: 2013-08-28 17:38
-comments: true
-categories: 
----
++++
+title = "欧洲人在日本"
+date = "2013-08-28T17:38:00+09:00"
++++
 
 看到以后笑了很久…… 译自 *HN* 上的[某个帖子](https://news.ycombinator.com/item?id=6141330)。[作者](https://twitter.com/patio11)似乎是一位欧洲友人。
 

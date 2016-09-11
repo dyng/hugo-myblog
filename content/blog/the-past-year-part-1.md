@@ -1,12 +1,7 @@
----
-author: admin
-comments: true
-date: 2012-04-29 16:29:54+00:00
-layout: post
-slug: '%e6%88%91%e8%bf%99%e4%b8%80%e5%b9%b4%e6%9d%a5%ef%bc%88%e4%b8%8a%e7%af%87%ef%bc%89'
-title: 我这一年来（上篇）
-wordpress_id: 56
----
++++
+date = "2012-04-30T01:29:54+09:00"
+title = "我这一年来（上篇）"
++++
 
 在填到签证申请表的职业一栏时，发现原来毕业已经快一年了——
 

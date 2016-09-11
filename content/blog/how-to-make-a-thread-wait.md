@@ -1,10 +1,8 @@
----
-layout: post
-title: "Java 并发编程笔记：如何让一个线程停下来"
-date: 2016-09-09 21:51
-comments: true
-categories: 技术
----
++++
+title = "Java 并发编程笔记：如何让一个线程停下来"
+date = "2016-09-09T21:51:00+09:00"
+categories = ["技术"]
++++
 
 # 前言
 

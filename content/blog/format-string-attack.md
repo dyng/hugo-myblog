@@ -1,10 +1,8 @@
----
-layout: post
-title: "一次格式化字符串攻击（上）"
-date: 2013-11-03 10:22
-comments: true
-categories: 技术
----
++++
+title = "一次格式化字符串攻击（上）"
+date = "2013-11-03T10:22:00+09:00"
+categories = ["技术"]
++++
 最近大部分时间都花在做[这组题](http://ksnctf.sweetduet.info)上了（当然还有[GTA5](http://en.wikipedia.org/wiki/Grand_Theft_Auto_V)，不愧是2.6亿打造出来的游戏啊），题目的类型很丰富，涉及密码破解、反汇编、sql注入、hash碰撞等等，而且大部分都包含提示，搜索一下关键词就能找到破解的线索，或者真不济……还有公司里同事所写的[解题报告](http://ichirin2501.hatenablog.com/entry/2012/06/11/001540) :)
 
 今天在这里主要记载一下[第四题](http://ksnctf.sweetduet.info/problem/4)的解题过程，因为在这题上花费了最多的时间，而且又是我比较喜欢的汇编级别的漏洞利用，当然最重要的是，借由这题了解了一种过去不知道的攻击方式——格式化字符串攻击（format string attack）。

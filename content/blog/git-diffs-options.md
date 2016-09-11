@@ -1,10 +1,8 @@
----
-layout: post
-title: "diff的两个参数"
-date: 2013-09-13 03:01
-comments: true
-categories: 技术
----
++++
+title = "diff的两个参数"
+date = "2013-09-13T03:01:00+09:00"
+categories = ["技术"]
++++
 
 最近在读[滨野纯](https://github.com/gitster)所著的[《入门Git》](http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809)，很有意思，主要集中于书中散见各处的作者提及Git当初的设计思想和实现过程的时候。我一直相信，理解一件事物最好的方式就是理解历史。作者作为在Git尚且只是雏形时（2005年7月末）就从Linus手中接过Git的维护工作，并在接下来的数年中将其发扬光大的关键人物（ *Linus: "In the last four years under his stewardship, git has flourished and become not just a technically advanced source control manager, but one that is a pleasure to use as well."* ），在书中谈论当初开发时的想法和过程自然是信手拈来——
 

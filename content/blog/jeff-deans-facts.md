@@ -1,12 +1,7 @@
----
-author: admin
-comments: true
-date: 2012-11-29 07:04:16+00:00
-layout: post
-slug: jeff-dean%e7%9a%84%e4%ba%8c%e4%b8%89%e4%ba%8b
-title: Jeff Dean的二三事
-wordpress_id: 159
----
++++
+date = "2012-11-29T16:04:16+09:00"
+title = "Jeff Dean的二三事"
++++
 
 最早是某[同事](http://chen-xiao.com/)发来的[链接](http://www.quora.com/Jeff-Dean/What-are-all-the-Jeff-Dean-facts)，结果让我笑了一晚上……看看也不是太长，于是翻译分享一下。注：比较Geek，千茶学姐对不住了！
 

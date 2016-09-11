@@ -1,10 +1,8 @@
----
-layout: post
-title: "走开，Daddy"
-date: 2013-08-06 15:47
-comments: true
-categories: 杂谈
----
++++
+title = "走开，Daddy"
+date = "2013-08-06T15:47:00+09:00"
+categories = ["杂谈"]
++++
 
 {% img center /images/20130807/goawaydaddy.jpg %}
 

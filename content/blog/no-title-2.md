@@ -1,12 +1,7 @@
----
-author: admin
-comments: true
-date: 2012-08-29 05:50:28+00:00
-layout: post
-slug: '%e6%97%a0%e9%a2%98-2'
-title: 无题
-wordpress_id: 148
----
++++
+date = "2012-08-29T14:50:28+09:00"
+title = "无题"
++++
 
 发现一提笔就习惯性地想写一些故作搞笑（而且还特别冷）的文字时，我震惊了。
 

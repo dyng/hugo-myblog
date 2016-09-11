@@ -1,10 +1,8 @@
----
-layout: post
-title: 搬家了
-date: 2013-07-30 22:06
-comments: true
-categories: 生活
----
++++
+title = "搬家了"
+date = "2013-07-30T22:06:00+09:00"
+categories = ["生活"]
++++
 半年多的慵懒，这里都快长草了吧。
 
 近来看到同事的王桑更新[博客](http://onevcat.com/)很是勤快，每一篇的质量都很高，而且在 github 上也开了一个非常有影响力的[项目](https://github.com/onevcat/VVDocumenter-Xcode)，深受其鼓舞，让我看到并且相信

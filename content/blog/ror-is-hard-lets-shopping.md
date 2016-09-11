@@ -1,12 +1,7 @@
----
-author: admin
-comments: true
-date: 2012-07-07 11:39:20+00:00
-layout: post
-slug: '%e8%af%b4-ruby-on-rails-%e5%be%88%e7%ae%80%e5%8d%95%e4%bb%80%e4%b9%88%e7%9a%84%e9%83%bd%e6%98%af%e9%aa%97%e4%ba%ba%e7%9a%84%ef%bc%81'
-title: 说 ruby on rails 很简单什么的都是骗人的！
-wordpress_id: 117
----
++++
+date = "2012-07-07T20:39:20+09:00"
+title = "说 ruby on rails 很简单什么的都是骗人的！"
++++
 
 最近偶然看到这样一篇抱怨 rails 的文章，和[《UNIX痛恨者手册》](http://en.wikipedia.org/wiki/The_UNIX-HATERS_Handbook)一样的吐槽风格，非常搞笑，今天趁闲于是翻译了过来。特别是在搞笑之余，因为涉及到的技术方面很多，对于 web 开发不是很熟悉的同学或许还能从中学到一些东西，我自己就是在这篇文章中了解了不少过去不知道的概念和软件，然后意识到追赶潮流实在是个无底洞……好吧，这其实没啥关系。
 

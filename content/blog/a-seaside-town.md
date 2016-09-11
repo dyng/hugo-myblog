@@ -1,12 +1,7 @@
----
-author: admin
-comments: true
-date: 2012-05-17 15:54:58+00:00
-layout: post
-slug: '%e6%b5%b7%e8%be%b9%e7%9a%84%e5%b0%8f%e9%95%87'
-title: 海边的小镇
-wordpress_id: 89
----
++++
+date = "2012-05-18T00:54:58+09:00"
+title = "海边的小镇"
++++
 
 如果只用一个词来形容镰仓的话，恐怕没有比海边的小镇更贴切的了。
 
