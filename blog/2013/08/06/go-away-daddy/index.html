@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html lang="en-us">
+<html>
+	
+		<head>
+		<title>走开，Daddy - Never More: a personal site of Ye Ding</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="Just yet another personal site">
+        <meta name="author" content="Ye Ding">
+		<meta name="keywords" content="dyng, blog, personal site, technical, java">
+        
+		<link rel="stylesheet" href="http://blog.dyngr.com/assets/css/main-blue.css" />
+		
+		<link rel="icon" type="image/ico" href="http://blog.dyngr.com/images/favicon-16x16.ico" sizes="16x16" />
+                <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/atom-one-dark.min.css">
+                <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+                <script>hljs.initHighlightingOnLoad();</script>
+		
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-42770963-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+	</head>
+
+	
+	<body>
+
+		
+			
+						<section id="header">
+				<header>
+					<span class="image avatar"><a href="http://blog.dyngr.com/"><img src="http://blog.dyngr.com/images/avatar.png" alt="" /></a></span>
+					<h1 id="logo"><a href="http://blog.dyngr.com/">Never More</a></h1>
+					<p>自然体，平常心</p>
+				</header>
+				<nav id="nav">
+					<ul>
+						
+					</ul>
+				</nav>
+				<footer>
+					<ul class="icons">
+						
+							<li><a href="https://github.com/dyng" class="icon fa-github"><span class="label">Github</span></a></li>
+						
+							<li><a href="https://twitter.com/gbingdu" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
+						
+							<li><a href="http://weibo.com/dyngrr" class="icon fa-weibo"><span class="label">Weibo</span></a></li>
+						
+							<li><a href="mailto:ye.ding.1986@gmail.com" class="icon fa-envelope"><span class="label">Email</span></a></li>
+						
+					</ul>
+				</footer>
+			</section>
+
+			
+		
+			<div id="wrapper">
+		
+			<div id="main">
+						
+				<section>
+					<div class="container">
+						<header class="major">
+							<h2>走开，Daddy</h2>
+							<p>6 August 2013</p>
+														<ul class="actions small">
+							
+                                
+                                <li><a href="http://blog.dyngr.com/categories/%E6%9D%82%E8%B0%88" class="button special small icon fa-sitemap">杂谈</a></li>
+                            
+							
+							</ul>
+						</header>
+						<p><img src="/images/20130807/goawaydaddy.jpg" alt="" /></p>
+
+<p>回头发现，这个新博客的第一周大部分时间是在和GoDaddy的折腾中度过的。虽然过去一直对GoDaddy没有特别好的印象（可能和杂乱的界面以及创始人<a href="http://en.wikipedia.org/wiki/Bob_Parsons">Bob Parsons</a>的前海军陆战队身份有关），但当决定注册一个新域名时第一个想到的依然是GoDaddy，于是我注册了，付款了，ping通了，一切都显得很顺利。</p>
+
+<p>只是那时的我没想到之后的一周会如此折腾。</p>
+
+<p>差不过就是五天前，发现博客突然上不去了，DNSPod也显示域名无法解析。第一反应，可能是GoDaddy的问题吧，很自然地就想登录看看状况，这时我犯了第一个错误：</p>
+
+<p><strong>GoDaddy登录使用的不是邮箱而是用户名。</strong></p>
+
+<p>但是GoDaddy的错误信息是不管这些的，一概显示“用户名和密码不匹配”，我只好相信我又记错密码了，于是把可能的密码都输了一遍，直到我发现GoDaddy需要的是用户名而不是邮箱时。但已经晚了，当我输入正确的用户名和正确的密码时，得到的结果是：</p>
+
+<blockquote>
+<p>This account is locked. Please contact Customer Service.</p>
+</blockquote>
+
+<p>好吧，现在我们就有两个问题了。</p>
+
+<p>既然提示信息是“请联系客服”，所以我就开始搜索不联系客服的解决方法（之前的教训告诉我GoDaddy的提示信息是必须反着看的）。很快找到一个重置密码的办法，我试了，但是在email地址一栏显示&rdquo;invalid value&rdquo;，这种朴素平实的错误信息不禁让我想起公司某个即使把500 Internal Server Error抛给用户也一定要加一行大字“通信错误”的app。总之重置密码也试了好几次，但始终是&rdquo;invalid value&rdquo;而不得其解，我甚至都怀疑不会是因为邮箱名里有&rdquo;virus&rdquo;字样所以触发了过滤吧？这一次的教训就是：</p>
+
+<p><strong>无论如何，起一个人畜无害的邮箱名总是好的。</strong></p>
+
+<p>重置密码也无果，只能联系客服了。写邮件前顺便搜了一下邮箱，发现三封来自GoDaddy的未读邮件……因为都被标为不重要所以一直没有看到。草草浏览了一下，终于明白域名为什么被封了。</p>
+
+<blockquote>
+<p>Your account has been selected by our verification office as a precautionary measure to defend you from possible misuse of either your payment method or products.</p>
+</blockquote>
+
+<p>好吧，原来我是幸运得被用户认证中心选中的用户，为了保护我不会成为信用卡盗用的受害者。</p>
+
+<blockquote>
+<p>During the login process, our secure site will prompt you to upload a viewable, scanned copy of the payment method account holder&rsquo;s government-issued photo identification, such as a driver&rsquo;s license or passport.  In the comments box, we ask that you also provide a brief explanation of how you intend to use the product(s) purchased. If we do not receive the requested documentation within the next 48 hours, your order(s) may be cancelled for your protection.</p>
+</blockquote>
+
+<p>然后就是要求我必须上传含照片的护照扫描件，以及最后通牒式的48小时时限。当然我看到这封邮件已经是3天后了，所以点开另一封邮件是这样的：</p>
+
+<blockquote>
+<p>As a result of this review, your recent order(s) in shopper account xxxxxxxx have been canceled.</p>
+</blockquote>
+
+<p>我不明白一个26刀的域名有什么必要值得我必须扫描个人ID并且上传给一个陌生人……不过域名毕竟已经开始使用了，不能轻易失去它。但身边一时也没有ID，只好先发一份邮件请求能否延缓两天（因为上一封邮件中要求当天就需要上传），并且说明了我现在无法登录的困境。由于时差关系等了一天，收到这样的回复：</p>
+
+<blockquote>
+<p>Your timely compliance will ensure a quick resolution.</p>
+</blockquote>
+
+<p>说得好像是我不配合一样。无奈只好把外国人登录证扫描成图片，正准备上传时才发现：</p>
+
+<p><strong>上传认证信息需要登录，而我因为没有通过认证所以账号处于被封状态。</strong></p>
+
+<p>……于是我又开始试各种解封账号的方法（给客服的邮件前一天也发了，但没有回音），在尝试“找回密码提示”的时候，突然提示让我上传认证照片！大喜过望，忙不迭地把刚扫描好的外国人登录证传上去，为了防止他们不认识，又在留言一栏里附了解释外国人登录证的wiki。搞完这些，觉得终于没问题了吧。</p>
+
+<p>又是等了一天，收到GoDaddy的回信：</p>
+
+<blockquote>
+<p>Unfortunately, the name on the identification we received does not match the name of the payment method account holder provided at the time of purchase.</p>
+</blockquote>
+
+<p>外国人登录证上的是汉字，而信用卡的名义人是罗马拼音……算了，我也不指望你们会念一个中国人名字的日语读法。这时候离当初注册已经过去一个星期了，我为了一个不到3000日元的域名，拼命地证明自己不是盗刷信用卡的罪犯，浪费时间、心力，我实在受够这种折腾了——特别是，在查看了一下护照以后发现上面写的是名字的汉语拼音以后。</p>
+
+<p>whois了一下，好样的，已经没有记录了。滚吧，Daddy，我浪费了足够多的时间在这件愚蠢的事上，是时候和你说再见了。哦不，我再也不想见到你了。</p>
+
+<p>上onamae注册，下单，下楼FamilyMart缴费，搞定。</p>
+
+<p><em>ps：</em> 写完这篇文章后，在gmail的垃圾箱里无意中发现了GoDaddy客服对解封账号的回复，我明明设定了filter凡是来自GoDaddy的邮件都始终标注重要的啊……</p>
+
+						
+						<ul class="actions">
+							
+								<li><a href="http://blog.dyngr.com/blog/2013/07/30/new-home" class="button special">Older</a></li>
+							
+							
+								<li><a href="http://blog.dyngr.com/blog/2013/08/24/how-programmer-names" class="button special">Newer</a></li>
+							
+						</ul>
+
+                                                <div class="comments">
+                                                  <h2>Comments</h2>
+                                                  <div id="disqus_thread"></div>
+<script type="text/javascript">
+     
+    var disqus_shortname = 'dyngblog';
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+                                                </div>
+						
+					</div>
+				</section>
+				
+			</div>
+
+								<section id="footer">
+						<div class="container">
+							<ul class="copyright">
+								<li>2016 &copy; Author <a href="http://blog.dyngr.com/">@dyng</a>. Powered by <a href="https://github.com/spf13/hugo">Hugo</a> and <a href="https://github.com/aerohub/hugo-me-theme">Me</a>. All rights reserved.</li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		
+					<script src="http://blog.dyngr.com/assets/js/jquery.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/jquery.scrollzer.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/jquery.scrolly.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/skel.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/util.js"></script>
+			
+			<script src="http://blog.dyngr.com/assets/js/main.js"></script>
+
+	</body>
+</html>

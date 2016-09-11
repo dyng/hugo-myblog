@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html lang="en-us">
+<html>
+	
+		<head>
+		<title>欧洲人在日本 - Never More: a personal site of Ye Ding</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="Just yet another personal site">
+        <meta name="author" content="Ye Ding">
+		<meta name="keywords" content="dyng, blog, personal site, technical, java">
+        
+		<link rel="stylesheet" href="http://blog.dyngr.com/assets/css/main-blue.css" />
+		
+		<link rel="icon" type="image/ico" href="http://blog.dyngr.com/images/favicon-16x16.ico" sizes="16x16" />
+                <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/atom-one-dark.min.css">
+                <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+                <script>hljs.initHighlightingOnLoad();</script>
+		
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-42770963-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+	</head>
+
+	
+	<body>
+
+		
+			
+						<section id="header">
+				<header>
+					<span class="image avatar"><a href="http://blog.dyngr.com/"><img src="http://blog.dyngr.com/images/avatar.png" alt="" /></a></span>
+					<h1 id="logo"><a href="http://blog.dyngr.com/">Never More</a></h1>
+					<p>自然体，平常心</p>
+				</header>
+				<nav id="nav">
+					<ul>
+						
+					</ul>
+				</nav>
+				<footer>
+					<ul class="icons">
+						
+							<li><a href="https://github.com/dyng" class="icon fa-github"><span class="label">Github</span></a></li>
+						
+							<li><a href="https://twitter.com/gbingdu" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
+						
+							<li><a href="http://weibo.com/dyngrr" class="icon fa-weibo"><span class="label">Weibo</span></a></li>
+						
+							<li><a href="mailto:ye.ding.1986@gmail.com" class="icon fa-envelope"><span class="label">Email</span></a></li>
+						
+					</ul>
+				</footer>
+			</section>
+
+			
+		
+			<div id="wrapper">
+		
+			<div id="main">
+						
+				<section>
+					<div class="container">
+						<header class="major">
+							<h2>欧洲人在日本</h2>
+							<p>28 August 2013</p>
+														<ul class="actions small">
+							
+							
+							</ul>
+						</header>
+						<p>看到以后笑了很久…… 译自 <em>HN</em> 上的<a href="https://news.ycombinator.com/item?id=6141330">某个帖子</a>。<a href="https://twitter.com/patio11">作者</a>似乎是一位欧洲友人。</p>
+
+<p>某家日本公司有一天决定他们需要在某个系统里面加入一些“虚拟”的员工，以支持诸如在一个职位还未招到人的情况下能够把他的工作安排进组织图表里（以及其他很多应用场景）。所以他们想到了一个很聪明的主意，“啊哈，我们可以这么干，在‘日语姓名’一栏里填入状态信息，例如 XX_JOB_REQUEST 或者 XX_INCOMINT_TRANSFER 来代表这些虚拟的员工。”</p>
+
+<p>然后有一个该系统的程序员，觉得每添加一个新状态信息就要改动代码太麻烦了，于是他写了如下的代码：</p>
+
+<pre><code class="language-java">if (InternalStringUtils.isAllLatinCharacters(employee.getJapaneseName()) {
+    /* 虚拟员工，无需支付工资，因此将其从工资列表中移除 */
+    ...
+}
+</code></pre>
+
+<p>为什么我会知道这段如此耐人寻味的代码，我想你们都能猜到了吧。</p>
+
+						
+						<ul class="actions">
+							
+								<li><a href="http://blog.dyngr.com/blog/2013/08/24/how-programmer-names" class="button special">Older</a></li>
+							
+							
+								<li><a href="http://blog.dyngr.com/blog/2013/09/13/git-diffs-options" class="button special">Newer</a></li>
+							
+						</ul>
+
+                                                <div class="comments">
+                                                  <h2>Comments</h2>
+                                                  <div id="disqus_thread"></div>
+<script type="text/javascript">
+     
+    var disqus_shortname = 'dyngblog';
+
+     
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+                                                </div>
+						
+					</div>
+				</section>
+				
+			</div>
+
+								<section id="footer">
+						<div class="container">
+							<ul class="copyright">
+								<li>2016 &copy; Author <a href="http://blog.dyngr.com/">@dyng</a>. Powered by <a href="https://github.com/spf13/hugo">Hugo</a> and <a href="https://github.com/aerohub/hugo-me-theme">Me</a>. All rights reserved.</li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		
+					<script src="http://blog.dyngr.com/assets/js/jquery.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/jquery.scrollzer.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/jquery.scrolly.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/skel.min.js"></script>
+			<script src="http://blog.dyngr.com/assets/js/util.js"></script>
+			
+			<script src="http://blog.dyngr.com/assets/js/main.js"></script>
+
+	</body>
+</html>
