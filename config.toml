@@ -25,6 +25,9 @@ footnotereturnlinkcontents = "↩"
     description = "Just yet another personal site"
     keywords = "dyng, blog, personal site, technical, java"
 
+    # disqus
+    disqusShortname = "dyngblog"
+
     [params.syntax]
         style = "atom-one-dark"
 
