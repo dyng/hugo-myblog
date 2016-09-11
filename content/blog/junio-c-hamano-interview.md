@@ -106,7 +106,7 @@ ps：至于最后的 &hearts; 我就不吐槽了……
 
 至此全文完。最后附一张大叔的帅气照片。
 
-{% img center /images/20130926/dankogai-with-junio.jpg %}
+![](/images/20130926/dankogai-with-junio.jpg)
 
 左为小饲弹先生，右为滨野纯先生。
 

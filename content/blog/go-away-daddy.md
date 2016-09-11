@@ -4,7 +4,7 @@ date = "2013-08-06T15:47:00+09:00"
 categories = ["杂谈"]
 +++
 
-{% img center /images/20130807/goawaydaddy.jpg %}
+![](/images/20130807/goawaydaddy.jpg)
 
 回头发现，这个新博客的第一周大部分时间是在和GoDaddy的折腾中度过的。虽然过去一直对GoDaddy没有特别好的印象（可能和杂乱的界面以及创始人[Bob Parsons](http://en.wikipedia.org/wiki/Bob_Parsons)的前海军陆战队身份有关），但当决定注册一个新域名时第一个想到的依然是GoDaddy，于是我注册了，付款了，ping通了，一切都显得很顺利。
 

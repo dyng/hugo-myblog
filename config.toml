@@ -8,9 +8,10 @@ paginatePath = "page"
 googleAnalytics = "UA-42770963-1"
 enableEmoji = true
 hasCJKLanguage = true
+footnotereturnlinkcontents = "↩"
 
 [permalinks]
-    blog = "/:year/:month/:day/:filename"
+    blog = "/blog/:year/:month/:day/:filename"
 
 [params]
 

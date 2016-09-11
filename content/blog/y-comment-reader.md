@@ -13,23 +13,23 @@ title = "一个Vim插件"
 
 比如说像这样：
 
-{% img /images/20120730/1.png %}
+![](/images/20120730/1.png)
 
 或者像这样：
 
-{% img /images/20120730/2.png %}
+![](/images/20120730/2.png)
 
 还有像这样：
 
-{% img /images/20120730/3.png %}
+![](/images/20120730/3.png)
 
 支持注段落间跳转，自动翻页……
 
 支持多种语言（不断更新中！）
 
-{% img /images/20120730/more-1.png %}
-{% img /images/20120730/more-2.png %}
-{% img /images/20120730/more-3.png %}
+![](/images/20120730/more-1.png)
+![](/images/20120730/more-2.png)
+![](/images/20120730/more-3.png)
 
 haskell?  scala?  go?  coming soon!
 
