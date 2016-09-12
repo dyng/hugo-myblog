@@ -41,8 +41,9 @@ p a {
 	color:#7F1000;
 }
 h1 {
-	font-family: 'Libre Baskerville', serif;
-	font-weight: 700; 
+    font-family: 'Libre Baskerville', serif;
+    font-weight: 700;
+    line-height: 1.2;
 }
 .center {
 	text-align: center;
