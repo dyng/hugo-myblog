@@ -96,7 +96,8 @@ h2.brand-tagline {
 	font-weight: 200;
 }
 .sidebar {
-	background: #2d303b;
+    position: relative;
+    background: #2d303b;
 }
 .sidebar, .sidebar p {
 	color: #8b8b8b;
