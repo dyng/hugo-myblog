@@ -1,88 +1,166 @@
-<!DOCTYPE HTML>
-<html lang="en-us">
-<html>
-	
-		<head>
-		<title>diff的两个参数 - Never More: a personal site of Ye Ding</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="Just yet another personal site">
-        <meta name="author" content="Ye Ding">
-		<meta name="keywords" content="dyng, blog, personal site, technical, java">
-        
-		<link rel="stylesheet" href="http://blog.dyngr.com/assets/css/main-blue.css" />
-		
-		<link rel="icon" type="image/ico" href="http://blog.dyngr.com/images/favicon-16x16.ico" sizes="16x16" />
-                <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/atom-one-dark.min.css">
-                <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
-                <script>hljs.initHighlightingOnLoad();</script>
-		
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <title>
+    diff的两个参数 // Never More: a personal site of Ye Ding
+  </title>
+
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="generator" content="Hugo 0.16" />
+
+  <meta property="og:title" content="diff的两个参数" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://blog.dyngr.com/blog/2013/09/13/git-diffs-options" />
+
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/base-min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/pure-min.css">
+  
+  
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/grids-responsive-min.css">
+  
+  
+
+  <link rel="stylesheet" href="http://blog.dyngr.com//css/redlounge.css">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,200,100,700,300,500,600,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Libre+Baskerville:400,700,400italic' rel='stylesheet' type='text/css'>
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Never More: a personal site of Ye Ding" />
+
+    
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/styles/tomorrow-night-bright.min.css">
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+
+  
+
+  
+    <link rel="stylesheet" type="text/css" href="/assets/css/categories.css">
+  
+
+  
 <script>
-window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
 ga('create', 'UA-42770963-1', 'auto');
 ga('send', 'pageview');
 </script>
-<script async src='//www.google-analytics.com/analytics.js'></script>
 
-	</head>
+
+  
+</head>
+
+<body>
+	
+
+	<div id="layout" class="pure-g">
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+  <div class="header">
+    
 
 	
-	<body>
+
+    <h1 class="brand-title">Never More</h1>
+    <h2 class="brand-tagline">自然体，平常心</h2>
+
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item"><span class="nav-item-separator">//</span><a href="http://blog.dyngr.com/">Home</a></li>
+        
+          <li class="nav-item"><span class="nav-item-separator">//</span><a href="/about">About</a></li>
+        
+      </ul>
+    </nav>
+
+    
+    <div class="social-buttons">
+      
+        
+        <a href="https://github.com/dyng" target="_blank"><i class='fa fa-github'></i></a>
+        
+      
+        
+        <a href="https://twitter.com/gbingdu" target="_blank"><i class='fa fa-twitter'></i></a>
+        
+      
+        
+        <a href="http://weibo.com/dyngrr" target="_blank"><i class='fa fa-weibo'></i></a>
+        
+      
+      
+    </div>
+    
+
+  </div>
+</div>
+
+	
+	
+
+    <div class="content pure-u-1 pure-u-md-3-4">
+		<a name="top"></a>
+		
 
 		
 			
-						<section id="header">
-				<header>
-					<span class="image avatar"><a href="http://blog.dyngr.com/"><img src="http://blog.dyngr.com/images/avatar.png" alt="" /></a></span>
-					<h1 id="logo"><a href="http://blog.dyngr.com/">Never More</a></h1>
-					<p>自然体，平常心</p>
-				</header>
-				<nav id="nav">
-					<ul>
-						
-					</ul>
-				</nav>
-				<footer>
-					<ul class="icons">
-						
-							<li><a href="https://github.com/dyng" class="icon fa-github"><span class="label">Github</span></a></li>
-						
-							<li><a href="https://twitter.com/gbingdu" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-						
-							<li><a href="http://weibo.com/dyngrr" class="icon fa-weibo"><span class="label">Weibo</span></a></li>
-						
-							<li><a href="mailto:ye.ding.1986@gmail.com" class="icon fa-envelope"><span class="label">Email</span></a></li>
-						
-					</ul>
-				</footer>
-			</section>
+	    
+  		<section class="post">
+            <h1 class="post-title">
+              <a href="/blog/2013/09/13/git-diffs-options">diff的两个参数</a>
+            </h1>
+            <h3 class="post-subtitle">
+            	
+            </h3>
+            
+            	<span class="post-date">
+                	<span class="post-date-day"><sup>13</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2013</span>
+            	</span>
+            	
+            
+            	
+            
 
 			
-		
-			<div id="wrapper">
-		
-			<div id="main">
-						
-				<section>
-					<div class="container">
-						<header class="major">
-							<h2>diff的两个参数</h2>
-							<p>13 September 2013</p>
-														<ul class="actions small">
-							
-                                
-                                <li><a href="http://blog.dyngr.com/categories/%E6%8A%80%E6%9C%AF" class="button special small icon fa-sitemap">技术</a></li>
-                            
-							
-							</ul>
-						</header>
-						<p>最近在读<a href="https://github.com/gitster">滨野纯</a>所著的<a href="http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809">《入门Git》</a>，很有意思，主要集中于书中散见各处的作者提及Git当初的设计思想和实现过程的时候。我一直相信，理解一件事物最好的方式就是理解历史。作者作为在Git尚且只是雏形时（2005年7月末）就从Linus手中接过Git的维护工作，并在接下来的数年中将其发扬光大的关键人物（ <em>Linus: &ldquo;In the last four years under his stewardship, git has flourished and become not just a technically advanced source control manager, but one that is a pleasure to use as well.&rdquo;</em> ），在书中谈论当初开发时的想法和过程自然是信手拈来——</p>
+			
+				<div class="post-categories">
+				
+					<a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+				
+				</div>
+			
+
+			
+
+			
+
+            <p>最近在读<a href="https://github.com/gitster">滨野纯</a>所著的<a href="http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809">《入门Git》</a>，很有意思，主要集中于书中散见各处的作者提及Git当初的设计思想和实现过程的时候。我一直相信，理解一件事物最好的方式就是理解历史。作者作为在Git尚且只是雏形时（2005年7月末）就从Linus手中接过Git的维护工作，并在接下来的数年中将其发扬光大的关键人物（ <em>Linus: &ldquo;In the last four years under his stewardship, git has flourished and become not just a technically advanced source control manager, but one that is a pleasure to use as well.&rdquo;</em> ），在书中谈论当初开发时的想法和过程自然是信手拈来——</p>
 
 <p>会这么期待说明我还是太天真了。我可以感受到作者希望让这本书“名符其实”的良苦用心，但事实证明写好入门书的权力永远都只属于入门者，作者从来就不曾是一名“Git入门者”自然不会理解初学者最需要的是什么、最困惑的是什么，一上来就讲 Three-way Merge 的原理这是要闹哪样……</p>
 
 <p>不过还是有这么一章，相对完整地讲述了当初的设计思想，并提到了diff的两个我之前并不知道的参数，让我觉得值得一写。其实对于Git的diff和log命令，日常使用在大多数情况无参数的输出已经足够，就我个人的经验，最常使用的参数也不外乎于<code>-p</code>，<code>--name-only</code>，至多再修改一下<code>--pretty</code>。然而这一章告诉我，diff能做的不止于此，或者更确切地说，Git当初的目标就考虑得比这更远。Git试图成为的是一个理解历史的<strong>文件系统</strong><sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup>。</p>
-
-<!-- more -->
 
 <p>仿照书中的写法，这里也首先从Linus的一封邮件谈起。这封邮件是Linus于2005年4月投向Git的开发者邮件列表的，起因是有开发者提议在commit对象中添加rename信息，以便于SCM日后能够输出更详细的变更历史，Linus对此非常不以为然，于是就发了这封邮件，阐释他心目中理想的<strong>Git应该是什么</strong>，而按照《入门Git》中的说法，“这封邮件成为了其后的开发工作最重要的指导方针之一”。<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">2</a></sup></p>
 
@@ -126,58 +204,64 @@ Date: 2005-04-16 01:32:46</p>
 </ol>
 </div>
 
-						
-						<ul class="actions">
-							
-								<li><a href="http://blog.dyngr.com/blog/2013/08/28/programming-is-funny" class="button special">Older</a></li>
-							
-							
-								<li><a href="http://blog.dyngr.com/blog/2013/09/26/junio-c-hamano-interview" class="button special">Newer</a></li>
-							
-						</ul>
+	
+			
 
-                                                <div class="comments">
-                                                  <h2>Comments</h2>
-                                                  <div id="disqus_thread"></div>
+			
+
+			
+				<div class="paging">
+					<span class="paging-label">More Reading</span>
+					
+					<div class="paging-newer">
+						<span class="dark-red">Newer</span><span class="decorative-marker">//</span>
+						<a class="paging-link" href="/blog/2013/09/26/junio-c-hamano-interview">关于滨野纯的访谈</a>
+		            </div>
+		            
+
+					
+					<div class="paging-older">
+						<span class="dark-red">Older</span><span class="decorative-marker">//</span>
+			            <a class="paging-link" href="/blog/2013/08/28/programming-is-funny">欧洲人在日本</a>
+		            </div>
+		            
+	            </div>
+            
+          </section>
+          
+          	<div id="disqus_thread"></div>
 <script type="text/javascript">
-     
     var disqus_shortname = 'dyngblog';
+    var disqus_identifier = 'http:\/\/blog.dyngr.com\/blog\/2013\/09\/13\/git-diffs-options';
+    var disqus_title = 'diff的两个参数';
+    var disqus_url = 'http:\/\/blog.dyngr.com\/blog\/2013\/09\/13\/git-diffs-options';
 
-     
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-
-                                                </div>
-						
-					</div>
-				</section>
-				
-			</div>
-
-								<section id="footer">
-						<div class="container">
-							<ul class="copyright">
-								<li>2016 &copy; Author <a href="http://blog.dyngr.com/">@dyng</a>. Powered by <a href="https://github.com/spf13/hugo">Hugo</a> and <a href="https://github.com/aerohub/hugo-me-theme">Me</a>. All rights reserved.</li>
-							</ul>
-						</div>
-					</section>
-
-			</div>
-
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+          
+        
+      <div class="footer">
+	<hr class="thin" />
+	<div class="pure-menu pure-menu-horizontal pure-menu-open">
+		<ul class="footer-menu">
 		
-					<script src="http://blog.dyngr.com/assets/js/jquery.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/jquery.scrollzer.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/jquery.scrolly.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/skel.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/util.js"></script>
-			
-			<script src="http://blog.dyngr.com/assets/js/main.js"></script>
+		</ul>
+	</div>
 
-	</body>
+	<p>&copy; 2016. All rights reserved.</p>
+</div>
+    </div>
+  </div>
+	
+
+	
+
+  
+</body>
 </html>

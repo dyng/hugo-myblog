@@ -1,79 +1,156 @@
-<!DOCTYPE HTML>
-<html lang="en-us">
-<html>
-	
-		<head>
-		<title>一个Vim插件 - Never More: a personal site of Ye Ding</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="Just yet another personal site">
-        <meta name="author" content="Ye Ding">
-		<meta name="keywords" content="dyng, blog, personal site, technical, java">
-        
-		<link rel="stylesheet" href="http://blog.dyngr.com/assets/css/main-blue.css" />
-		
-		<link rel="icon" type="image/ico" href="http://blog.dyngr.com/images/favicon-16x16.ico" sizes="16x16" />
-                <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/atom-one-dark.min.css">
-                <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
-                <script>hljs.initHighlightingOnLoad();</script>
-		
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <title>
+    一个Vim插件 // Never More: a personal site of Ye Ding
+  </title>
+
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="generator" content="Hugo 0.16" />
+
+  <meta property="og:title" content="一个Vim插件" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://blog.dyngr.com/blog/2012/07/30/y-comment-reader" />
+
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/base-min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/pure-min.css">
+  
+  
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/grids-responsive-min.css">
+  
+  
+
+  <link rel="stylesheet" href="http://blog.dyngr.com//css/redlounge.css">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,200,100,700,300,500,600,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Libre+Baskerville:400,700,400italic' rel='stylesheet' type='text/css'>
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Never More: a personal site of Ye Ding" />
+
+    
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/styles/tomorrow-night-bright.min.css">
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+
+  
+
+  
+    <link rel="stylesheet" type="text/css" href="/assets/css/categories.css">
+  
+
+  
 <script>
-window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
 ga('create', 'UA-42770963-1', 'auto');
 ga('send', 'pageview');
 </script>
-<script async src='//www.google-analytics.com/analytics.js'></script>
 
-	</head>
+
+  
+</head>
+
+<body>
+	
+
+	<div id="layout" class="pure-g">
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+  <div class="header">
+    
 
 	
-	<body>
+
+    <h1 class="brand-title">Never More</h1>
+    <h2 class="brand-tagline">自然体，平常心</h2>
+
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item"><span class="nav-item-separator">//</span><a href="http://blog.dyngr.com/">Home</a></li>
+        
+          <li class="nav-item"><span class="nav-item-separator">//</span><a href="/about">About</a></li>
+        
+      </ul>
+    </nav>
+
+    
+    <div class="social-buttons">
+      
+        
+        <a href="https://github.com/dyng" target="_blank"><i class='fa fa-github'></i></a>
+        
+      
+        
+        <a href="https://twitter.com/gbingdu" target="_blank"><i class='fa fa-twitter'></i></a>
+        
+      
+        
+        <a href="http://weibo.com/dyngrr" target="_blank"><i class='fa fa-weibo'></i></a>
+        
+      
+      
+    </div>
+    
+
+  </div>
+</div>
+
+	
+	
+
+    <div class="content pure-u-1 pure-u-md-3-4">
+		<a name="top"></a>
+		
 
 		
 			
-						<section id="header">
-				<header>
-					<span class="image avatar"><a href="http://blog.dyngr.com/"><img src="http://blog.dyngr.com/images/avatar.png" alt="" /></a></span>
-					<h1 id="logo"><a href="http://blog.dyngr.com/">Never More</a></h1>
-					<p>自然体，平常心</p>
-				</header>
-				<nav id="nav">
-					<ul>
-						
-					</ul>
-				</nav>
-				<footer>
-					<ul class="icons">
-						
-							<li><a href="https://github.com/dyng" class="icon fa-github"><span class="label">Github</span></a></li>
-						
-							<li><a href="https://twitter.com/gbingdu" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-						
-							<li><a href="http://weibo.com/dyngrr" class="icon fa-weibo"><span class="label">Weibo</span></a></li>
-						
-							<li><a href="mailto:ye.ding.1986@gmail.com" class="icon fa-envelope"><span class="label">Email</span></a></li>
-						
-					</ul>
-				</footer>
-			</section>
+	    
+  		<section class="post">
+            <h1 class="post-title">
+              <a href="/blog/2012/07/30/y-comment-reader">一个Vim插件</a>
+            </h1>
+            <h3 class="post-subtitle">
+            	
+            </h3>
+            
+            	<span class="post-date">
+                	<span class="post-date-day"><sup>30</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jul</span> <span class="post-date-year">2012</span>
+            	</span>
+            	
+            
+            	
+            
 
 			
-		
-			<div id="wrapper">
-		
-			<div id="main">
-						
-				<section>
-					<div class="container">
-						<header class="major">
-							<h2>一个Vim插件</h2>
-							<p>30 July 2012</p>
-														<ul class="actions small">
-							
-							
-							</ul>
-						</header>
-						<p>这又是一篇技术博客（千茶学姐对不起了），讲的就是上班无聊的时候，写了一个Vim插件。其实在上篇博客写就的时候，插件也快写完了，然而……就如你所见的又拖了半个月。——写这句话的时候还只是半个月，而接下来的内容又拖了一个星期。</p>
+			
+
+			
+
+			
+
+            <p>这又是一篇技术博客（千茶学姐对不起了），讲的就是上班无聊的时候，写了一个Vim插件。其实在上篇博客写就的时候，插件也快写完了，然而……就如你所见的又拖了半个月。——写这句话的时候还只是半个月，而接下来的内容又拖了一个星期。</p>
 
 <p>起因是这样的：周末的时候某知名国际五百强企业的同学来镰仓旅游，顺便也就到我所住的宿舍来玩。那天正巧是端午节，嘉兴出身的某知名国际五百……太麻烦了以下简称某同学自己吃了从国内带来的粽子不说，完全没有惦记到我连个粽子都不带空手而来，于是我们开始玩三国杀。可惜宿舍里的中国人满打满算也只有四口人，看来是不能常规打法了，于是我建议要不模仿大逃杀吧，谁活到最后就算赢。然后第二天上班的时候我就开始看大逃杀，因为发现自己原来还没看过这本小说。虽然仗着全是中文字所以用Vim打开了光明正大的在上班时间看小说，不过难免还是有点心虚，虽然谁也不会来看。为了解决上班看小说容易心虚的难题，于是我用接下来两天的上班时间写了下面的这个插件。</p>
 
@@ -103,58 +180,64 @@ ga('send', 'pageview');
 
 <p>好吧，其实我也知道这是一个毫无用处的<a href="https://github.com/gvirus/YCommentReader">插件</a>。</p>
 
-						
-						<ul class="actions">
-							
-								<li><a href="http://blog.dyngr.com/blog/2012/07/07/ror-is-hard-lets-shopping" class="button special">Older</a></li>
-							
-							
-								<li><a href="http://blog.dyngr.com/blog/2012/08/29/no-title-2" class="button special">Newer</a></li>
-							
-						</ul>
+	
+			
 
-                                                <div class="comments">
-                                                  <h2>Comments</h2>
-                                                  <div id="disqus_thread"></div>
+			
+
+			
+				<div class="paging">
+					<span class="paging-label">More Reading</span>
+					
+					<div class="paging-newer">
+						<span class="dark-red">Newer</span><span class="decorative-marker">//</span>
+						<a class="paging-link" href="/blog/2012/08/29/no-title-2">无题</a>
+		            </div>
+		            
+
+					
+					<div class="paging-older">
+						<span class="dark-red">Older</span><span class="decorative-marker">//</span>
+			            <a class="paging-link" href="/blog/2012/07/07/ror-is-hard-lets-shopping">说 ruby on rails 很简单什么的都是骗人的！</a>
+		            </div>
+		            
+	            </div>
+            
+          </section>
+          
+          	<div id="disqus_thread"></div>
 <script type="text/javascript">
-     
     var disqus_shortname = 'dyngblog';
+    var disqus_identifier = 'http:\/\/blog.dyngr.com\/blog\/2012\/07\/30\/y-comment-reader';
+    var disqus_title = '一个Vim插件';
+    var disqus_url = 'http:\/\/blog.dyngr.com\/blog\/2012\/07\/30\/y-comment-reader';
 
-     
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-
-                                                </div>
-						
-					</div>
-				</section>
-				
-			</div>
-
-								<section id="footer">
-						<div class="container">
-							<ul class="copyright">
-								<li>2016 &copy; Author <a href="http://blog.dyngr.com/">@dyng</a>. Powered by <a href="https://github.com/spf13/hugo">Hugo</a> and <a href="https://github.com/aerohub/hugo-me-theme">Me</a>. All rights reserved.</li>
-							</ul>
-						</div>
-					</section>
-
-			</div>
-
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+          
+        
+      <div class="footer">
+	<hr class="thin" />
+	<div class="pure-menu pure-menu-horizontal pure-menu-open">
+		<ul class="footer-menu">
 		
-					<script src="http://blog.dyngr.com/assets/js/jquery.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/jquery.scrollzer.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/jquery.scrolly.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/skel.min.js"></script>
-			<script src="http://blog.dyngr.com/assets/js/util.js"></script>
-			
-			<script src="http://blog.dyngr.com/assets/js/main.js"></script>
+		</ul>
+	</div>
 
-	</body>
+	<p>&copy; 2016. All rights reserved.</p>
+</div>
+    </div>
+  </div>
+	
+
+	
+
+  
+</body>
 </html>

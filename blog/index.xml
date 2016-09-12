@@ -296,8 +296,6 @@ try {
 
 &lt;p&gt;找工作也算是尘埃落定了。对于任天堂，很遗憾地在终面挂了，不过这也是一种结果吧。想当初面试之前，在网上搜了很久的面经，包括日文的，都没有找到很有价值的信息，甚至知乎上常有的“在xx公司工作是怎样一番体验”中也没有任天堂，不知是不是大家已经忘了这家从制作花札起家，把“尽人事以听天命”作为社名由来，曾经盛极一时近三年来却一直亏损的百年老铺。这里我姑且记录一下自己的面试经历，算是给后人提供一个参考吧。&lt;/p&gt;
 
-&lt;!-- more --&gt;
-
 &lt;h1 id=&#34;经验教训&#34;&gt;经验教训&lt;/h1&gt;
 
 &lt;p&gt;如果没有兴趣了解具体的细节的话，以下就是个人面试以后总结的经验和教训：&lt;/p&gt;
@@ -387,8 +385,6 @@ try {
 &lt;h1 id=&#34;感谢paypal和godaddy&#34;&gt;感谢PayPal和GoDaddy&lt;/h1&gt;
 
 &lt;p&gt;我有一个很稀有的Twitter用户名，&lt;strong&gt;@N&lt;/strong&gt;。是的，只有一个字母。曾经有人出价50000美元向我购买这个用户名。也有很多人尝试盗我的帐号，密码重置邮件出现在我的邮箱里是一件很稀疏平常的事。然而今天，这个用户名已经不再属于我。我被迫放弃了它。&lt;/p&gt;
-
-&lt;!-- more --&gt;
 
 &lt;p&gt;2014年1月20日，在我吃午饭的时候收到一封来自PayPal的验证码短信。我想又有人在尝试盗我的PayPal帐号了。于是我无视了它，继续吃我的午饭。&lt;/p&gt;
 
@@ -599,8 +595,6 @@ Subject: RE: …hello&lt;/p&gt;
 &lt;p&gt;今天在这里主要记载一下&lt;a href=&#34;http://ksnctf.sweetduet.info/problem/4&#34;&gt;第四题&lt;/a&gt;的解题过程，因为在这题上花费了最多的时间，而且又是我比较喜欢的汇编级别的漏洞利用，当然最重要的是，借由这题了解了一种过去不知道的攻击方式——格式化字符串攻击（format string attack）。&lt;/p&gt;
 
 &lt;p&gt;注：本文需要一定程度的汇编知识，虽然尽可能地做到详细解释，不过对汇编和c语言的汇编表示不太熟悉的朋友强烈推荐看一下&lt;a href=&#34;http://book.douban.com/subject/5407246/&#34;&gt;CSAPP&lt;/a&gt;的第三章。&lt;/p&gt;
-
-&lt;!-- more --&gt;
 
 &lt;h2 id=&#34;问题&#34;&gt;问题&lt;/h2&gt;
 
@@ -847,11 +841,9 @@ Hi, 00000000000000000400
 
 &lt;p&gt;&lt;a href=&#34;http://blog.dyngr.com/blog/2013/09/13/git-diffs-options&#34;&gt;上一篇&lt;/a&gt;文章中提到，最近正在阅读&lt;a href=&#34;http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809&#34;&gt;《入门Git》&lt;/a&gt;，搜索作者&lt;a href=&#34;https://plus.google.com/108182106411180467879/posts&#34;&gt;滨野纯&lt;/a&gt;相关信息的时候搜到了以下这篇著名博客作家&lt;a href=&#34;http://ja.wikipedia.org/wiki/%E5%B0%8F%E9%A3%BC%E5%BC%BE&#34;&gt;小饲弹&lt;/a&gt;对滨野纯的访谈，里面提及了滨野纯当初参与Git项目时的轶事，以及他对于开源项目的看法。特别是滨野纯说“Git是他第一次有一定规模地向开源项目提交代码”，很是鼓舞人——对那些想参与开源项目但缺乏信心的同学。所以趁闲把访谈全文翻译了一下，原文请见：&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&#34;http://gihyo.jp/dev/serial/01/alpha-geek/0040&#34;&gt;#22　Gitメンテナ　濱野 純：小飼弾のアルファギークに逢いたい&amp;hearts;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://gihyo.jp/dev/serial/01/alpha-geek/0040&#34;&gt;#22 Gitメンテナ 濱野純：小飼弾のアルファギークに逢いたい&amp;hearts;&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;ps：至于最后的 &amp;hearts; 我就不吐槽了……&lt;/p&gt;
-
-&lt;!-- more --&gt;
 
 &lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;/p&gt;
 
@@ -977,8 +969,6 @@ Hi, 00000000000000000400
 &lt;p&gt;会这么期待说明我还是太天真了。我可以感受到作者希望让这本书“名符其实”的良苦用心，但事实证明写好入门书的权力永远都只属于入门者，作者从来就不曾是一名“Git入门者”自然不会理解初学者最需要的是什么、最困惑的是什么，一上来就讲 Three-way Merge 的原理这是要闹哪样……&lt;/p&gt;
 
 &lt;p&gt;不过还是有这么一章，相对完整地讲述了当初的设计思想，并提到了diff的两个我之前并不知道的参数，让我觉得值得一写。其实对于Git的diff和log命令，日常使用在大多数情况无参数的输出已经足够，就我个人的经验，最常使用的参数也不外乎于&lt;code&gt;-p&lt;/code&gt;，&lt;code&gt;--name-only&lt;/code&gt;，至多再修改一下&lt;code&gt;--pretty&lt;/code&gt;。然而这一章告诉我，diff能做的不止于此，或者更确切地说，Git当初的目标就考虑得比这更远。Git试图成为的是一个理解历史的&lt;strong&gt;文件系统&lt;/strong&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
-
-&lt;!-- more --&gt;
 
 &lt;p&gt;仿照书中的写法，这里也首先从Linus的一封邮件谈起。这封邮件是Linus于2005年4月投向Git的开发者邮件列表的，起因是有开发者提议在commit对象中添加rename信息，以便于SCM日后能够输出更详细的变更历史，Linus对此非常不以为然，于是就发了这封邮件，阐释他心目中理想的&lt;strong&gt;Git应该是什么&lt;/strong&gt;，而按照《入门Git》中的说法，“这封邮件成为了其后的开发工作最重要的指导方针之一”。&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 
