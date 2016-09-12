@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <title>
+    Never More: a personal site of Ye Ding
+  </title>
+
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="generator" content="Hugo 0.16" />
+
+  <meta property="og:title" content="Never More: a personal site of Ye Ding" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://blog.dyngr.com/" />
+
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/base-min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/pure-min.css">
+  
+  
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/grids-responsive-min.css">
+  
+  
+
+  <link rel="stylesheet" href="http://blog.dyngr.com//css/redlounge.css">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,200,100,700,300,500,600,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Libre+Baskerville:400,700,400italic' rel='stylesheet' type='text/css'>
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="http://blog.dyngr.com/index.xml" rel="alternate" type="application/rss+xml" title="Never More: a personal site of Ye Ding" />
+
+    
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/styles/tomorrow-night-bright.min.css">
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+
+  
+
+  
+    <link rel="stylesheet" type="text/css" href="/assets/css/categories.css">
+  
+
+  
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-42770963-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  
+</head>
+
+<body>
+    <div id="layout" class="pure-g">
+        <div class="sidebar pure-u-1 pure-u-md-1-4">
+  <div class="header">
+    
+
+	
+
+    <h1 class="brand-title">Never More</h1>
+    <h2 class="brand-tagline">自然体，平常心</h2>
+
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item"><span class="nav-item-separator">//</span><a href="http://blog.dyngr.com/">Home</a></li>
+        
+          <li class="nav-item"><span class="nav-item-separator">//</span><a href="/about">About</a></li>
+        
+      </ul>
+    </nav>
+
+    
+    <div class="social-buttons">
+      
+        
+        <a href="https://github.com/dyng" target="_blank"><i class='fa fa-github'></i></a>
+        
+      
+        
+        <a href="https://twitter.com/gbingdu" target="_blank"><i class='fa fa-twitter'></i></a>
+        
+      
+        
+        <a href="http://weibo.com/dyngrr" target="_blank"><i class='fa fa-weibo'></i></a>
+        
+      
+      
+    </div>
+    
+
+  </div>
+</div>
+
+
+        <div class="content pure-u-1 pure-u-md-3-4">
+            <a name="top"></a>
+            
+
+          <div class="posts">
+            
+            
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2016/09/09/how-to-make-a-thread-wait">Java 并发编程笔记：如何让一个线程停下来</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>9</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2016</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <h1 id="前言">前言</h1>
+
+<p>这几天趁辞职和下一份工作的间隙，考虑把 Java 的基础再好好补一下。提到 Java 的进阶使用，并发编程自然是无法绕过的一个主题。在上一份工作中初次接触了 Java，但在实际工作中使用到并发编程的次数屈指可数，所以尽管日常的使用或许没有问题，但对实现细节了解不深，还不能做到“知其所以然”。这一系列文章——尽管在写下这句话时还只有这第一篇文章，但我希望自己能够坚持写成一个系列——是我在探索“所以然”过程中的思考和记录，希望对后来人能够有帮助吧。</p>
+
+<p>因为这篇文章的初衷是学习笔记而非教程，所以不会从创建10个 Thread 打印10句 &ldquo;Hello, world!&rdquo; 开始，而是在每篇文章中选取一个较小的主题，结合自己阅读 JDK 源代码的心得和网上搜索到的资料写成。由于 Java 是个拥有20年历史的古老项目，而且特别注重向后兼容性，因而有新旧 API 共存、某些设计反直觉、设计思想不统一等不利于后来人理解的因素，我也希望能够尽可能从历史的角度来解释“所以然”。</p>
+
+<p>当然因为止于 Java 我还是初学者，而文章里涉及历史时也包含推测的部分，如果在阅读中发现有错误和缺陷的话，还请大家留言指正。</p>
+
+<p>以上差不多是写下这篇文章的初衷，我们开始吧。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2016/09/09/how-to-make-a-thread-wait"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2014/11/02/interview-for-nintendo">任天堂面试记</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>2</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Nov</span> <span class="post-date-year">2014</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                    <a class="post-category post-category-%E8%81%8C%E4%B8%9A" href="http://blog.dyngr.com//categories/%E8%81%8C%E4%B8%9A">职业</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p>找工作也算是尘埃落定了。对于任天堂，很遗憾地在终面挂了，不过这也是一种结果吧。想当初面试之前，在网上搜了很久的面经，包括日文的，都没有找到很有价值的信息，甚至知乎上常有的“在xx公司工作是怎样一番体验”中也没有任天堂，不知是不是大家已经忘了这家从制作花札起家，把“尽人事以听天命”作为社名由来，曾经盛极一时近三年来却一直亏损的百年老铺。这里我姑且记录一下自己的面试经历，算是给后人提供一个参考吧。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2014/11/02/interview-for-nintendo"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username">我是如何失去价值50000美元的Twitter用户名的</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>8</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Feb</span> <span class="post-date-year">2014</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>9 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p>这是一篇在Twitter上看到的文章，文章的作者因为使用了独立域名的邮箱地址作为网站的登录邮箱，导致在DNS服务器被攻破时失去了很多网站帐号的控制，最终损失了价值50000美刀的Twitter帐号。独立域名邮箱作为提升逼格的一种重要手段，相信还是有不少程序员对此趋之若鹜的XD 特别推荐倒数第二段作者吸取的教训，很值得一看。</p>
+
+<p>====</p>
+
+<h1 id="我价值50000美元的twitter用户名被盗了">我价值50000美元的Twitter用户名被盗了</h1>
+
+<h1 id="感谢paypal和godaddy">感谢PayPal和GoDaddy</h1>
+
+<p>我有一个很稀有的Twitter用户名，<strong>@N</strong>。是的，只有一个字母。曾经有人出价50000美元向我购买这个用户名。也有很多人尝试盗我的帐号，密码重置邮件出现在我的邮箱里是一件很稀疏平常的事。然而今天，这个用户名已经不再属于我。我被迫放弃了它。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/11/03/format-string-attack">一次格式化字符串攻击（上）</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>3</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Nov</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p>最近大部分时间都花在做<a href="http://ksnctf.sweetduet.info">这组题</a>上了（当然还有<a href="http://en.wikipedia.org/wiki/Grand_Theft_Auto_V">GTA5</a>，不愧是2.6亿打造出来的游戏啊），题目的类型很丰富，涉及密码破解、反汇编、sql注入、hash碰撞等等，而且大部分都包含提示，搜索一下关键词就能找到破解的线索，或者真不济……还有公司里同事所写的<a href="http://ichirin2501.hatenablog.com/entry/2012/06/11/001540">解题报告</a> :)</p>
+
+<p>今天在这里主要记载一下<a href="http://ksnctf.sweetduet.info/problem/4">第四题</a>的解题过程，因为在这题上花费了最多的时间，而且又是我比较喜欢的汇编级别的漏洞利用，当然最重要的是，借由这题了解了一种过去不知道的攻击方式——格式化字符串攻击（format string attack）。</p>
+
+<p>注：本文需要一定程度的汇编知识，虽然尽可能地做到详细解释，不过对汇编和c语言的汇编表示不太熟悉的朋友强烈推荐看一下<a href="http://book.douban.com/subject/5407246/">CSAPP</a>的第三章。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/11/03/format-string-attack"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/09/26/junio-c-hamano-interview">关于滨野纯的访谈</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>26</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>10 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p><a href="http://blog.dyngr.com/blog/2013/09/13/git-diffs-options">上一篇</a>文章中提到，最近正在阅读<a href="http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809">《入门Git》</a>，搜索作者<a href="https://plus.google.com/108182106411180467879/posts">滨野纯</a>相关信息的时候搜到了以下这篇著名博客作家<a href="http://ja.wikipedia.org/wiki/%E5%B0%8F%E9%A3%BC%E5%BC%BE">小饲弹</a>对滨野纯的访谈，里面提及了滨野纯当初参与Git项目时的轶事，以及他对于开源项目的看法。特别是滨野纯说“Git是他第一次有一定规模地向开源项目提交代码”，很是鼓舞人——对那些想参与开源项目但缺乏信心的同学。所以趁闲把访谈全文翻译了一下，原文请见：</p>
+
+<p><a href="http://gihyo.jp/dev/serial/01/alpha-geek/0040">#22 Gitメンテナ 濱野純：小飼弾のアルファギークに逢いたい&hearts;</a></p>
+
+<p>ps：至于最后的 &hearts; 我就不吐槽了……</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/09/26/junio-c-hamano-interview"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/09/13/git-diffs-options">diff的两个参数</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>13</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>5 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p>最近在读<a href="https://github.com/gitster">滨野纯</a>所著的<a href="http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809">《入门Git》</a>，很有意思，主要集中于书中散见各处的作者提及Git当初的设计思想和实现过程的时候。我一直相信，理解一件事物最好的方式就是理解历史。作者作为在Git尚且只是雏形时（2005年7月末）就从Linus手中接过Git的维护工作，并在接下来的数年中将其发扬光大的关键人物（ <em>Linus: &ldquo;In the last four years under his stewardship, git has flourished and become not just a technically advanced source control manager, but one that is a pleasure to use as well.&rdquo;</em> ），在书中谈论当初开发时的想法和过程自然是信手拈来——</p>
+
+<p>会这么期待说明我还是太天真了。我可以感受到作者希望让这本书“名符其实”的良苦用心，但事实证明写好入门书的权力永远都只属于入门者，作者从来就不曾是一名“Git入门者”自然不会理解初学者最需要的是什么、最困惑的是什么，一上来就讲 Three-way Merge 的原理这是要闹哪样……</p>
+
+<p>不过还是有这么一章，相对完整地讲述了当初的设计思想，并提到了diff的两个我之前并不知道的参数，让我觉得值得一写。其实对于Git的diff和log命令，日常使用在大多数情况无参数的输出已经足够，就我个人的经验，最常使用的参数也不外乎于<code>-p</code>，<code>--name-only</code>，至多再修改一下<code>--pretty</code>。然而这一章告诉我，diff能做的不止于此，或者更确切地说，Git当初的目标就考虑得比这更远。Git试图成为的是一个理解历史的<strong>文件系统</strong>[^1]。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/09/13/git-diffs-options"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/08/28/programming-is-funny">欧洲人在日本</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>28</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Aug</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>1 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>看到以后笑了很久…… 译自 <em>HN</em> 上的<a href="https://news.ycombinator.com/item?id=6141330">某个帖子</a>。<a href="https://twitter.com/patio11">作者</a>似乎是一位欧洲友人。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/08/28/programming-is-funny"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/08/24/how-programmer-names">程序员的命名趣味</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>24</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Aug</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>6 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <blockquote>
+<p>……孔乙己显出极高兴的样子，将两个指头的长指甲敲着柜台，点头说，“对呀对呀！……exec有六样写法，你知道么？”我愈不耐烦了，努着嘴走远。孔乙己刚用指甲蘸了酒，想在柜上写字，见我毫不热心，便又叹一口气，显出极惋惜的样子。</p>
+</blockquote>
+
+<p>这自然只是我的杜撰，不过 Unix 系统的 exec 确实有[六种写法][1]，想必当年也是害苦了不少系统程序员。其实今天我想说的，正是关于命名的事儿。相信以下已经成为程序员的共识：</p>
+
+<p><strong>好的命名对提高可读性事半功倍，坏的命名则是代码晦涩的一大帮凶。</strong></p>
+
+<p>但取一个好的名字又谈何容易，也无怪乎某朋友开玩笑说“（写代码）瓶颈是取变量名”了。不过凡事，博古大抵可以通今，所以这里就整理一下 *nix 系统中一些有趣的命令以及它们有趣的名字，总结一下所谓的“命名范式”，或许对大家今后的命名之道有用。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/08/24/how-programmer-names"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/08/06/go-away-daddy">走开，Daddy</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>6</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Aug</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>4 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E6%9D%82%E8%B0%88" href="http://blog.dyngr.com//categories/%E6%9D%82%E8%B0%88">杂谈</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p><img src="/images/20130807/goawaydaddy.jpg" alt="" /></p>
+
+<p>回头发现，这个新博客的第一周大部分时间是在和GoDaddy的折腾中度过的。虽然过去一直对GoDaddy没有特别好的印象（可能和杂乱的界面以及创始人<a href="http://en.wikipedia.org/wiki/Bob_Parsons">Bob Parsons</a>的前海军陆战队身份有关），但当决定注册一个新域名时第一个想到的依然是GoDaddy，于是我注册了，付款了，ping通了，一切都显得很顺利。</p>
+
+<p>只是那时的我没想到之后的一周会如此折腾。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/08/06/go-away-daddy"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/07/30/new-home">搬家了</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>30</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jul</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>1 min. read</em></span>
+                
+                
+                <div class="post-categories">
+                    
+                    <a class="post-category post-category-%E7%94%9F%E6%B4%BB" href="http://blog.dyngr.com//categories/%E7%94%9F%E6%B4%BB">生活</a>
+                    
+                </div>
+                
+            </p>
+            <article class="post-summary">
+                  <p>半年多的慵懒，这里都快长草了吧。</p>
+
+<p>近来看到同事的王桑更新<a href="http://onevcat.com/">博客</a>很是勤快，每一篇的质量都很高，而且在 github 上也开了一个非常有影响力的<a href="https://github.com/onevcat/VVDocumenter-Xcode">项目</a>，深受其鼓舞，让我看到并且相信</p>
+
+<p><strong>努力还是会有回报的。</strong></p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/07/30/new-home"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2013/01/05/this-year-summary">2012年年终总结</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>5</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jan</span> <span class="post-date-year">2013</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>1 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>最近大家似乎都流行写年终总结，回顾了2012年中做过的，想过的，伤心过的，感动过的……结果我也不能免俗，还是来写一下吧。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2013/01/05/this-year-summary"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/11/29/jeff-deans-facts">Jeff Dean的二三事</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>29</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Nov</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>4 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>最早是某<a href="http://chen-xiao.com/">同事</a>发来的<a href="http://www.quora.com/Jeff-Dean/What-are-all-the-Jeff-Dean-facts">链接</a>，结果让我笑了一晚上……看看也不是太长，于是翻译分享一下。注：比较Geek，千茶学姐对不住了！</p>
+
+<p>这是Google 2007年的愚人节笑话，罗列了很多Jeff Dean的“光辉事迹”。大名鼎鼎的Jeff Dean想必不用我介绍了。……好吧，还是介绍一下，Jeff Dean是Google最早的一批员工，本来的研究领域是OOT语言的优化技术，也因此是Google很多基础系统的设计者和实现者，BigTable，MapReduce的作者……介绍什么的还是太麻烦了，直接正文吧。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/11/29/jeff-deans-facts"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/10/24/something-recently">最近</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>24</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Oct</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>3 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>在突破了“一个月至少写一篇博客“的底线之后，也就再没有什么底线……好吧，毕竟是花了120大洋买的空间，还是写点什么吧。</p>
+
+<p>从上个月开始公司从镰仓搬到了横滨，害得我不得不提前一个小时起床去赶电车。当然也不是没有好处，比如在电车上的半个小时终于可以久违地开始看看书了，比如去东京能够又省下330日元了，比如可以在横滨吃到便宜的吉野家了（镰仓如果要吃吉野家就必须花150日元坐车到大船）。新公司位于办公楼的三十层，一头面向横滨的出海口，另一头则在雨后能够看到富士山。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/10/24/something-recently"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/08/29/no-title-2">无题</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>29</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Aug</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>1 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>发现一提笔就习惯性地想写一些故作搞笑（而且还特别冷）的文字时，我震惊了。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/08/29/no-title-2"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/07/30/y-comment-reader">一个Vim插件</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>30</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jul</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>2 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>这又是一篇技术博客（千茶学姐对不起了），讲的就是上班无聊的时候，写了一个Vim插件。其实在上篇博客写就的时候，插件也快写完了，然而……就如你所见的又拖了半个月。——写这句话的时候还只是半个月，而接下来的内容又拖了一个星期。</p>
+
+<p>起因是这样的：周末的时候某知名国际五百强企业的同学来镰仓旅游，顺便也就到我所住的宿舍来玩。那天正巧是端午节，嘉兴出身的某知名国际五百……太麻烦了以下简称某同学自己吃了从国内带来的粽子不说，完全没有惦记到我连个粽子都不带空手而来，于是我们开始玩三国杀。可惜宿舍里的中国人满打满算也只有四口人，看来是不能常规打法了，于是我建议要不模仿大逃杀吧，谁活到最后就算赢。然后第二天上班的时候我就开始看大逃杀，因为发现自己原来还没看过这本小说。虽然仗着全是中文字所以用Vim打开了光明正大的在上班时间看小说，不过难免还是有点心虚，虽然谁也不会来看。为了解决上班看小说容易心虚的难题，于是我用接下来两天的上班时间写了下面的这个插件。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/07/30/y-comment-reader"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/07/07/ror-is-hard-lets-shopping">说 ruby on rails 很简单什么的都是骗人的！</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>7</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jul</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>2 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>最近偶然看到这样一篇抱怨 rails 的文章，和<a href="http://en.wikipedia.org/wiki/The_UNIX-HATERS_Handbook">《UNIX痛恨者手册》</a>一样的吐槽风格，非常搞笑，今天趁闲于是翻译了过来。特别是在搞笑之余，因为涉及到的技术方面很多，对于 web 开发不是很熟悉的同学或许还能从中学到一些东西，我自己就是在这篇文章中了解了不少过去不知道的概念和软件，然后意识到追赶潮流实在是个无底洞……好吧，这其实没啥关系。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/07/07/ror-is-hard-lets-shopping"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/06/20/no-title">无题</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>20</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jun</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>2 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>昨天因为4号台风接近的缘故，公司里的同事大多7点不到就早早下班回家了，因为太晚的话电车有可能停运。我则仗着宿舍离得比较近——虽然这么说，也要走25分钟——就在公司又赖了一会儿，不过真正等我出门的时候，发现还是太乐观了。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/06/20/no-title"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/05/18/a-seaside-town">海边的小镇</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>18</sup></span><span class="post-date-separator">/</span><span class="post-date-month">May</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>2 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>如果只用一个词来形容镰仓的话，恐怕没有比海边的小镇更贴切的了。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/05/18/a-seaside-town"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/05/08/the-past-year-part-2">我这一年来（大团圆）</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>8</sup></span><span class="post-date-separator">/</span><span class="post-date-month">May</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>11 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>之所以选择延毕（虽然最后没成功）再找工作，其实还有一个原因：复仇。对于去年十月的失利，终究是不甘心的。在准备了一年之后，耐不住“重新证明自己”的诱惑。现在想来，简直和赌徒输了的时候总会想着下一局扳回来一样。那时候基本上是这么想的：“以赴日工作为主，不过也得投一些国内企业保底。”</p>
+
+<p>如果事实上我也能这么做就好了。</p>
+
+<p>“hulu？xx文章说未来是属于草根社区youtube的，像hulu这种官办电视台注定是要失败的。”
+“网易现在重点是游戏吧，杭研估计就是个鸡肋。”
+“微策略还要成绩单太麻烦了……”
+“什么？昨天有创新工场的宣讲会？”
+“淘宝，我支付宝都没去还投淘宝不是自我否定么。”</p>
+
+<p>以上都是玩笑，不过也是事实。</p>
+
+<p>很矛盾。理性地分析，选择海投降低了风险提高了期望，总体上来说是增加双方总收益的，从数学上就没有反驳的余地。但既然无意于在国内工作，何必浪费双方的时间；既然要坚定信心，就要有勇气去承担；既然明知自己优柔寡断，就应该断了自己的退路……我总能找出如是种种理由，却对这些幼稚的想法无从反驳——平心而论我相信很多人应该已经解决了，或者根本就不曾存在过。所以某人说我一把年纪了还这么中二，一点都没错。说实话，我觉得这里没有现实和理想什么事儿，完全是选择与权衡的问题。数学系待久了一个问题就是，总希望能够找到一个“最优解”，或者说白了就是完美主义。得到所想得到的，同时造成最小的损失——自己的和他人的，然而不幸的是现实中的最优不是求出线性方程组的解就完事儿了。现实中面对的更多问题不是调优，而是取舍。就如写程序“过早优化是一种灾难”，完美主义又何尝不是一种过早优化。</p>
+
+<p>结果除却记不得的小公司（或许存在），一家日本的ERP软件公司。最后只投了百度、腾讯和微软，以及启程日本。……还有AHRP。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/05/08/the-past-year-part-2"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/04/30/the-past-year-part-1">我这一年来（上篇）</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>30</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Apr</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>在填到签证申请表的职业一栏时，发现原来毕业已经快一年了——</p>
+
+<p>我一般很少会谈论具体的生活，特别是自己的。因为生活往往是琐碎的、不具普适性的，如果对别人无用的话，那还写下来作甚？不过这篇文章因为曾经答应过某“学姐”（杭高版语），所以不得已，趁最后的这点时间写一写吧。</p>
+
+<p>回忆起来，这就要回到两年前的九月了，那时候我还是研二。由于数学系的研究生学制只有两年，在度过了如同本科生活延长线的研一以后，很快就又得面对那个——所谓“前途”的问题。以前常说，人只有两种状态：迷茫和暂时忘了迷茫。只有面对选择的时候，才发现迷茫的问题一直不曾被解决过。对于前途，在刚保研那阵子也想过：到时候再留学吧。那时候的想法简单来说就是这样。但是留学就必须考虑两个问题：专业和地点。继续读数学恐怕是最安逸的答案，但此时的我已经对数学失去热情了——尽管还要继续读两年的研究生——而且我自觉在数学上没有天赋，而那时候的我还相信做研究是需要天赋的。如果说其他感兴趣的领域的话，哲学？文学？心理学？全是人文科学，和我的专业实在相去甚远……更何况我认为这些作为兴趣尚可，作为专业肯定是不那么有趣的。正好那时候加入了大学里的仿人机器人小组，所以模糊地萌生过转行学计算机的想法，不过最后还是搁置了下来。相比于专业，地点问题倒是相对轻松地解决了：既然都学了日语，那就索性去日本留学吧。总结一下此时的目标就是：去日本留学，专业待定。</p>
+
+<p>现在看来，待定两个字是多么不负责任啊。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/04/30/the-past-year-part-1"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/03/08/you-need-a-paper-beside">在床头置一张纸一支笔</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>8</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Mar</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>6 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>一直以来我的身体都不是很好，这其中一半原因是从小被老妈冻坏了，另一半原因遗传自老妈的毛病：失眠。说是失眠略有点严重，更多时候只是睡不好而已（虽然这也不是什么好消息）。睡不好就有一个副作用，那就是多梦。几乎每个睡不好的夜晚我都会在形形色色、千奇百怪的世界里演着喜剧片、动作片、恐怖片、科幻片、综艺节目、写代码、玩游戏、解证明题……有些情节支离破碎，而有些甚至可以改写成剧本了。每次从一个有趣的梦中醒来，我的第一个念头就是希望赶快把这段经历告诉给别人，但是可能大家都有过这种体验：那就是梦的内容很不容易回忆起来，而且即使是记起来的那部分在醒来以后也会很快忘记。正是因为有这种压力，每次在被窝里我都会把梦的内容在脑中反复地演绎几遍，生怕一起床就会把这些全忘了。但事实是，等我悠哉悠哉地洗完脸吃完早饭，打开电脑端坐在屏幕前的时候，我已经忘得几乎一干二净了。</p>
+
+<p>不过这次略有不同，因为我有纸和笔了！正巧醒来的时候老妈来查房（为什么还有查房？可见杭州的父母管得有多严了），于是赶紧让老妈端来笔砚伺候。老妈一番好找才终于找到一只能写的笔，又把我大学上普通化学时的笔记本给拿来（作为草稿本一直放在我的桌子上）。潦潦草草地写下几个关键词，这回多少有些可以一说的材料了。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/03/08/you-need-a-paper-beside"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/blog/2012/03/01/a-documentary-of-ten-years">一部跨越了十年的纪录片</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>1</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Mar</span> <span class="post-date-year">2012</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>5 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  <p>——起初想俗套地题为《含泪活着》，但想到第一篇博文就这么悲观不是太好，所以改成了现在这个样子。</p>
+
+<p>最近几天看到不少朋友都定下了去向，又是在自己即将成行的一个月前，对人活着到底为了什么这种老生常谈的问题又开始烦恼起来。或许就像以前说过的一样，迷茫是常态，不迷茫只不过是因为暂时忘了迷茫罢了。</p>
+
+<p>就在这种时候，无意中打开了一部多年前曾经看过的纪录片——《含泪活着》。即使过去了这么多年，还是又一次被感动了。</p>
+
+              </article>
+              <div class="read-more-link">
+                  <a href="/blog/2012/03/01/a-documentary-of-ten-years"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+            <section  class="post">
+                <header class="post-header">
+                    
+                    <h1 class="post-title">
+                      <a href="/about/">关于我</a>
+                  </h1>
+              </header>
+              <p class="post-meta">
+                  
+                  <span class="post-date">
+                    <span class="post-date-day"><sup>1</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Jan</span> <span class="post-date-year">0001</span>
+                </span>
+                
+                
+                    
+                
+                
+                    <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>1 min. read</em></span>
+                
+                
+            </p>
+            <article class="post-summary">
+                  数学系，却临近毕业才发现计算机的有趣，匆匆地上路并以此为职业。大学六年，一直迷茫，或者连迷茫都算不上的懵懂。即便如此，还是努力地寻找人生该追
+              </article>
+              <div class="read-more-link">
+                  <a href="/about/"><span class="read-more-slashes">//</span>Read More...</a>
+              </div>
+          </section>
+          
+        </div>
+
+        <div class="footer">
+	<hr class="thin" />
+	<div class="pure-menu pure-menu-horizontal pure-menu-open">
+		<ul class="footer-menu">
+		
+		</ul>
+	</div>
+
+	<p>&copy; 2016. All rights reserved.</p>
+</div>
+        </div>
+    </div>
+    
+</body>
+</html>

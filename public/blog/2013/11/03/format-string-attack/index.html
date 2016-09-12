@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <title>
+    一次格式化字符串攻击（上） // Never More: a personal site of Ye Ding
+  </title>
+
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="generator" content="Hugo 0.16" />
+
+  <meta property="og:title" content="一次格式化字符串攻击（上）" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://blog.dyngr.com/blog/2013/11/03/format-string-attack" />
+
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/base-min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/pure-min.css">
+  
+  
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/grids-responsive-min.css">
+  
+  
+
+  <link rel="stylesheet" href="http://blog.dyngr.com//css/redlounge.css">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,200,100,700,300,500,600,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Libre+Baskerville:400,700,400italic' rel='stylesheet' type='text/css'>
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Never More: a personal site of Ye Ding" />
+
+    
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/styles/tomorrow-night-bright.min.css">
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+
+  
+
+  
+    <link rel="stylesheet" type="text/css" href="/assets/css/categories.css">
+  
+
+  
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-42770963-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  
+</head>
+
+<body>
+	
+
+	<div id="layout" class="pure-g">
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+  <div class="header">
+    
+
+	
+
+    <h1 class="brand-title">Never More</h1>
+    <h2 class="brand-tagline">自然体，平常心</h2>
+
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item"><span class="nav-item-separator">//</span><a href="http://blog.dyngr.com/">Home</a></li>
+        
+          <li class="nav-item"><span class="nav-item-separator">//</span><a href="/about">About</a></li>
+        
+      </ul>
+    </nav>
+
+    
+    <div class="social-buttons">
+      
+        
+        <a href="https://github.com/dyng" target="_blank"><i class='fa fa-github'></i></a>
+        
+      
+        
+        <a href="https://twitter.com/gbingdu" target="_blank"><i class='fa fa-twitter'></i></a>
+        
+      
+        
+        <a href="http://weibo.com/dyngrr" target="_blank"><i class='fa fa-weibo'></i></a>
+        
+      
+      
+    </div>
+    
+
+  </div>
+</div>
+
+	
+	
+
+    <div class="content pure-u-1 pure-u-md-3-4">
+		<a name="top"></a>
+		
+
+		
+			
+		    <div id="toc" class="pure-u-1 pure-u-md-1-4">
+				<small class="toc-label">Contents</small>
+		   	 	<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#问题">问题</a></li>
+<li><a href="#原理">原理</a>
+<ul>
+<li>
+<ul>
+<li><a href="#下期预告">下期预告</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		    </div>
+		    
+	    
+  		<section class="post">
+            <h1 class="post-title">
+              <a href="/blog/2013/11/03/format-string-attack">一次格式化字符串攻击（上）</a>
+            </h1>
+            <h3 class="post-subtitle">
+            	
+            </h3>
+            
+            	<span class="post-date">
+                	<span class="post-date-day"><sup>3</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Nov</span> <span class="post-date-year">2013</span>
+            	</span>
+            	
+            
+            	
+            
+
+			
+			
+				<div class="post-categories">
+				
+					<a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+				
+				</div>
+			
+
+			
+
+			
+
+            
+
+<p>最近大部分时间都花在做<a href="http://ksnctf.sweetduet.info">这组题</a>上了（当然还有<a href="http://en.wikipedia.org/wiki/Grand_Theft_Auto_V">GTA5</a>，不愧是2.6亿打造出来的游戏啊），题目的类型很丰富，涉及密码破解、反汇编、sql注入、hash碰撞等等，而且大部分都包含提示，搜索一下关键词就能找到破解的线索，或者真不济……还有公司里同事所写的<a href="http://ichirin2501.hatenablog.com/entry/2012/06/11/001540">解题报告</a> :)</p>
+
+<p>今天在这里主要记载一下<a href="http://ksnctf.sweetduet.info/problem/4">第四题</a>的解题过程，因为在这题上花费了最多的时间，而且又是我比较喜欢的汇编级别的漏洞利用，当然最重要的是，借由这题了解了一种过去不知道的攻击方式——格式化字符串攻击（format string attack）。</p>
+
+<p>注：本文需要一定程度的汇编知识，虽然尽可能地做到详细解释，不过对汇编和c语言的汇编表示不太熟悉的朋友强烈推荐看一下<a href="http://book.douban.com/subject/5407246/">CSAPP</a>的第三章。</p>
+
+<h2 id="问题">问题</h2>
+
+<p>这一题的背景是这样的：</p>
+
+<p>以q4用户登录服务器之后，可以发现home目录下有两个文件，其中flag.txt包含本次破解的密码，但是owner是q4a用户并且权限是owner只读，另一个是可执行文件q4，owner是q4a但是所有用户均可执行，这就是需要破解的对象了。</p>
+
+<p>程序的运行结果是这样的：</p>
+
+<pre><code class="language-text">vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What's your name?
+foo
+Hi, foo
+
+Do you want the flag?
+yes
+Do you want the flag?
+yes
+Do you want the flag?
+I neeeeeeeed it!
+Do you want the flag?
+no
+I see. Good bye.
+vagrant@lucid32:/vagrant/4-villager-a$
+</code></pre>
+
+<p>对q4反汇编之后得到如下的汇编代码：</p>
+
+<pre><code class="language-text">80485b4 &lt;main&gt;:
+80485b4:       55                      push   %ebp
+80485b5:       89 e5                   mov    %esp,%ebp
+80485b7:       83 e4 f0                and    $0xfffffff0,%esp
+80485ba:       81 ec 20 04 00 00       sub    $0x420,%esp
+80485c0:       c7 04 24 a4 87 04 08    movl   $0x80487a4,(%esp)
+80485c7:       e8 f8 fe ff ff          call   80484c4 &lt;puts@plt&gt;
+80485cc:       a1 04 9a 04 08          mov    0x8049a04,%eax
+80485d1:       89 44 24 08             mov    %eax,0x8(%esp)
+80485d5:       c7 44 24 04 00 04 00    movl   $0x400,0x4(%esp)
+80485dc:       00
+80485dd:       8d 44 24 18             lea    0x18(%esp),%eax
+80485e1:       89 04 24                mov    %eax,(%esp)
+80485e4:       e8 9b fe ff ff          call   8048484 &lt;fgets@plt&gt;
+80485e9:       c7 04 24 b6 87 04 08    movl   $0x80487b6,(%esp)
+80485f0:       e8 bf fe ff ff          call   80484b4 &lt;printf@plt&gt;
+80485f5:       8d 44 24 18             lea    0x18(%esp),%eax
+80485f9:       89 04 24                mov    %eax,(%esp)
+80485fc:       e8 b3 fe ff ff          call   80484b4 &lt;printf@plt&gt;
+8048601:       c7 04 24 0a 00 00 00    movl   $0xa,(%esp)
+8048608:       e8 67 fe ff ff          call   8048474 &lt;putchar@plt&gt;
+804860d:       c7 84 24 18 04 00 00    movl   $0x1,0x418(%esp)
+8048614:       01 00 00 00
+8048618:       eb 67                   jmp    8048681 &lt;main+0xcd&gt;
+804861a:       c7 04 24 bb 87 04 08    movl   $0x80487bb,(%esp)
+8048621:       e8 9e fe ff ff          call   80484c4 &lt;puts@plt&gt;
+8048626:       a1 04 9a 04 08          mov    0x8049a04,%eax
+804862b:       89 44 24 08             mov    %eax,0x8(%esp)
+804862f:       c7 44 24 04 00 04 00    movl   $0x400,0x4(%esp)
+8048636:       00
+8048637:       8d 44 24 18             lea    0x18(%esp),%eax
+804863b:       89 04 24                mov    %eax,(%esp)
+804863e:       e8 41 fe ff ff          call   8048484 &lt;fgets@plt&gt;
+8048643:       85 c0                   test   %eax,%eax
+8048645:       0f 94 c0                sete   %al
+8048648:       84 c0                   test   %al,%al
+804864a:       74 0a                   je     8048656 &lt;main+0xa2&gt;
+804864c:       b8 00 00 00 00          mov    $0x0,%eax
+8048651:       e9 86 00 00 00          jmp    80486dc &lt;main+0x128&gt;
+8048656:       c7 44 24 04 d1 87 04    movl   $0x80487d1,0x4(%esp)
+804865d:       08
+804865e:       8d 44 24 18             lea    0x18(%esp),%eax
+8048662:       89 04 24                mov    %eax,(%esp)
+8048665:       e8 7a fe ff ff          call   80484e4 &lt;strcmp@plt&gt;
+804866a:       85 c0                   test   %eax,%eax
+804866c:       75 13                   jne    8048681 &lt;main+0xcd&gt;
+804866e:       c7 04 24 d5 87 04 08    movl   $0x80487d5,(%esp)
+8048675:       e8 4a fe ff ff          call   80484c4 &lt;puts@plt&gt;
+804867a:       b8 00 00 00 00          mov    $0x0,%eax
+804867f:       eb 5b                   jmp    80486dc &lt;main+0x128&gt;
+8048681:       8b 84 24 18 04 00 00    mov    0x418(%esp),%eax
+8048688:       85 c0                   test   %eax,%eax
+804868a:       0f 95 c0                setne  %al
+804868d:       84 c0                   test   %al,%al
+804868f:       75 89                   jne    804861a &lt;main+0x66&gt;
+8048691:       c7 44 24 04 e6 87 04    movl   $0x80487e6,0x4(%esp)
+8048698:       08
+8048699:       c7 04 24 e8 87 04 08    movl   $0x80487e8,(%esp)
+80486a0:       e8 ff fd ff ff          call   80484a4 &lt;fopen@plt&gt;
+80486a5:       89 84 24 1c 04 00 00    mov    %eax,0x41c(%esp)
+80486ac:       8b 84 24 1c 04 00 00    mov    0x41c(%esp),%eax
+80486b3:       89 44 24 08             mov    %eax,0x8(%esp)
+80486b7:       c7 44 24 04 00 04 00    movl   $0x400,0x4(%esp)
+80486be:       00
+80486bf:       8d 44 24 18             lea    0x18(%esp),%eax
+80486c3:       89 04 24                mov    %eax,(%esp)
+80486c6:       e8 b9 fd ff ff          call   8048484 &lt;fgets@plt&gt;
+80486cb:       8d 44 24 18             lea    0x18(%esp),%eax
+80486cf:       89 04 24                mov    %eax,(%esp)
+80486d2:       e8 dd fd ff ff          call   80484b4 &lt;printf@plt&gt;
+80486d7:       b8 00 00 00 00          mov    $0x0,%eax
+80486dc:       c9                      leave
+80486dd:       c3                      ret
+80486de:       90                      nop
+80486df:       90                      nop
+</code></pre>
+
+<p>这是一段比较简单易懂的汇编代码（而且最重要的是还很短！），仔细阅读之后，基本可以还原出源代码：</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+int main(int argc, char *argv[])
+{
+    int flag;
+    char buf[1024];
+    FILE* f;
+
+    puts(&quot;What's your name?&quot;);
+
+    fgets(buf, 1024, stdin);
+    printf(&quot;Hi, &quot;);
+    printf(buf);
+    putchar('\n');
+
+    flag = 1;
+    while (flag == 1){
+        puts(&quot;Do you want the flag?&quot;);
+
+        if (fgets(buf, 1024, stdin) == NULL)
+            return 0;
+
+        if (!strcmp(buf, &quot;no\n&quot;)){
+            puts(&quot;I see. Good bye.&quot;);
+            return 0;
+        }
+    }
+
+    f = fopen(&quot;/home/q4a/flag.txt&quot;, &quot;r&quot;);
+    fgets(buf, 1024, f);
+    printf(buf);
+
+    return 0;
+}
+</code></pre>
+
+<p>可以发现控制程序流程的是关键变量flag，但在程序内部却没有任何能够改变flag值的办法，因此程序会进入死循环，永远不会走到打开flag.txt文件的第29行。同时大家应该也会注意到第13行至第15行写得很怪异，最自然的写法应该是：</p>
+
+<pre><code class="language-c">printf(&quot;Hi, %s\n&quot;, buf);
+</code></pre>
+
+<p>但原文却没有选择这样写，而是分为了三段，而这正是破解的关键。注意到第14行printf(buf) ，这是一句将用户输入直接打印出来的语句，相信做惯了互联网开发的同学会直觉性地察觉到这就像把用户输入直接插入sql查询语句中一样散发着异味。对于普通的字符串，printf(buf)和printf(&ldquo;%s&rdquo;, buf)确实是相同的，但如果字符串中包含 %d 和 %x 这样的特殊字符呢？</p>
+
+<pre><code class="language-text">vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What's your name?
+%d
+Hi, 1024
+</code></pre>
+
+<p>printf打印出来的不再是我们的输入，而是一个看起来似乎有意义的数字1024。为什么呢？这就涉及格式化字符串攻击的原理了。</p>
+
+<h2 id="原理">原理</h2>
+
+<p>printf有三个特性，最终使得格式化字符串攻击成为可能。其中第一条就是：</p>
+
+<blockquote>
+<p>当printf的format string是一个用户可控的字符串时，如果其中包含有%d这样特殊意义的字符时，printf就会根据format string的指示，把堆栈中接下来的地址作为余下的参数解释，从而做出程序作者没有预期的行为。</p>
+</blockquote>
+
+<p>上例中，format string是一个单独的 %d，因为printf的第一个参数也就是format string的地址保存在 %esp，则printf会取接下来 %esp+0x4 上的四个字节作为整数输出，那么 %esp+0x4 保存的值又是什么呢？将目光往上移动两行就会发现，这是fgets的第二个参数——1024，因为fgets之后没有语句改动过这个地址，所以依然残留在堆栈里。</p>
+
+<p>在这里程序已经表现出了一定程度的脆弱性，而且事实上我们还可以完全控制传递给printf的所有参数，不仅仅是显示fgets的第二个参数。</p>
+
+<pre><code class="language-text">80485dd:       8d 44 24 18             lea    0x18(%esp),%eax
+80485e1:       89 04 24                mov    %eax,(%esp)
+80485e4:       e8 9b fe ff ff          call   8048484 &lt;fgets@plt&gt;
+</code></pre>
+
+<p>透过这三行汇编代码可以看出 char* buf 被分配在 %esp+0x18 这个地址上，printf 的参数解析是从 %esp 开始的，因此只要在format string的最前面加上5个 %x（算上format string本身，正好是6个参数，也就是0x18个字节），接下来的参数就会在我们可以控制的buf中取用。例如：</p>
+
+<pre><code class="language-text">vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What's your name?
+[%08x][%08x][%08x][%08x][%08x]%08x
+Hi, [00000400][0026b440][0014139c][0000332c][00000000]3830255b
+</code></pre>
+
+<p>最后的<code>3830255b</code>，用 <a href="http://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Data/endian.html">Little Endian</a> 表示就是<code>5b 25 30 38</code>，对应的ASCII字符就是<code>[%08</code>，正是输入字符串的前四个字符。</p>
+
+<p>所以如果传给printf的字符串是<code>\x78\x56\x34\x12[%08x][%08x][%08x][%08x][%08x]%s</code><sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup>，那么printf就会很高兴地将<code>\x78\x56\x34\x12</code>作为需要输出的字符串地址，从而把内存地址为12345678的值作为字符串打印出来，直到遇到\0为止。（虽然这个地址大部分情况下是不可读的，使得我们只能得到一个segfault。）</p>
+
+<pre><code class="language-text">vagrant@lucid32:/vagrant/4-villager-a$ echo -ne '\x78\x56\x34\x12[%08x][%08x][%08x][%08x][%08x]%s' &gt;/tmp/input
+vagrant@lucid32:/vagrant/4-villager-a$ cat /tmp/input | ./q4
+What's your name?
+Segmentation fault
+vagrant@lucid32:/vagrant/4-villager-a$
+</code></pre>
+
+<p>不过还能让人稍稍宽心一点的是，到目前为止，printf只能输出内存中的值，无法进行修改，因此可以做的事情非常有限。然而printf还有一个比较冷门的特性：</p>
+
+<blockquote>
+<p>printf有个特殊的格式符%n，作用是在对应参数所给出的地址写入目前为止输出的字符个数。</p>
+</blockquote>
+
+<p>%n让printf有了修改内存的能力，而这正是格式化字符串攻击的核心。如果我们传给printf的字符串是<code>\x78\x56\x34\x12[%08x][%08x][%08x][%08x][%08x]%n</code>，那么printf就会在地址12345678处写入54<sup class="footnote-ref" id="fnref:2"><a rel="footnote" href="#fn:2">2</a></sup>，也就是之前输出的字符个数。换言之，我们有了<strong>在任意地址写入任意值</strong>的能力。</p>
+
+<p>不过还有一个问题，因为%n写入的是之前输出的字符数，所以我们必须控制字符数成为我们希望的值，固然不断地增加%x可以做到（理论上），但现实是堆栈大小是有限的，很有可能会读出界从而segfault，或者构造出的攻击字符串太长超过了fgets的缓冲区大小根本无法读入。于是这里我们就需要利用到printf的第三个特性：</p>
+
+<blockquote>
+<p>在format string中可以指定输出的位数，例如 %020x 就是用20位输出一个十六进制值，不足的位数用0补全。</p>
+</blockquote>
+
+<p>例如：</p>
+
+<pre><code class="language-text">vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What's your name?
+%020x
+Hi, 00000000000000000400
+</code></pre>
+
+<p>这就是压死printf的最后一根稻草了，现在我们真正拥有了<strong>在任意地址写入任意值</strong>的能力！</p>
+
+<h4 id="下期预告">下期预告</h4>
+
+<p>对于构造攻击字符还有一些需要解决的细节问题值得提一下（以及我自己陷进去的坑），另外为了实际解开那一题，还需要利用到GOT覆写（GOT overwrite）的知识，这些都放到下篇吧~</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">注意这里的前四个字节是十六进制值。如何向标准输入中输入十六进制值？这就需要<code>echo -ne</code>或是<code>printf</code>了。当然，还有一个最近写的小工具……放到下次再介绍吧。
+ <a class="footnote-return" href="#fnref:1">↩</a></li>
+<li id="fn:2">（\x78\x56\x34\x12，4个十六进制字符）4 +（[%08x]*5，左括号1个字符，十六进制数字8个字符，右括号1个字符）(1 + 8 + 1) * 5 = 54
+ <a class="footnote-return" href="#fnref:2">↩</a></li>
+</ol>
+</div>
+
+	
+			
+
+			
+
+			
+				<div class="paging">
+					<span class="paging-label">More Reading</span>
+					
+					<div class="paging-newer">
+						<span class="dark-red">Newer</span><span class="decorative-marker">//</span>
+						<a class="paging-link" href="/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username">我是如何失去价值50000美元的Twitter用户名的</a>
+		            </div>
+		            
+
+					
+					<div class="paging-older">
+						<span class="dark-red">Older</span><span class="decorative-marker">//</span>
+			            <a class="paging-link" href="/blog/2013/09/26/junio-c-hamano-interview">关于滨野纯的访谈</a>
+		            </div>
+		            
+	            </div>
+            
+          </section>
+          
+          	<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'dyngblog';
+    var disqus_identifier = 'http:\/\/blog.dyngr.com\/blog\/2013\/11\/03\/format-string-attack';
+    var disqus_title = '一次格式化字符串攻击（上）';
+    var disqus_url = 'http:\/\/blog.dyngr.com\/blog\/2013\/11\/03\/format-string-attack';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+          
+        
+      <div class="footer">
+	<hr class="thin" />
+	<div class="pure-menu pure-menu-horizontal pure-menu-open">
+		<ul class="footer-menu">
+		
+		</ul>
+	</div>
+
+	<p>&copy; 2016. All rights reserved.</p>
+</div>
+    </div>
+  </div>
+	
+
+	
+
+  
+</body>
+</html>

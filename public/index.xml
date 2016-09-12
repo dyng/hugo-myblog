@@ -1,0 +1,1542 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Never More: a personal site of Ye Ding</title>
+    <link>http://blog.dyngr.com/</link>
+    <description>Recent content on Never More: a personal site of Ye Ding</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 09 Sep 2016 21:51:00 +0900</lastBuildDate>
+    <atom:link href="http://blog.dyngr.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Java 并发编程笔记：如何让一个线程停下来</title>
+      <link>http://blog.dyngr.com/blog/2016/09/09/how-to-make-a-thread-wait</link>
+      <pubDate>Fri, 09 Sep 2016 21:51:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2016/09/09/how-to-make-a-thread-wait</guid>
+      <description>
+
+&lt;h1 id=&#34;前言&#34;&gt;前言&lt;/h1&gt;
+
+&lt;p&gt;这几天趁辞职和下一份工作的间隙，考虑把 Java 的基础再好好补一下。提到 Java 的进阶使用，并发编程自然是无法绕过的一个主题。在上一份工作中初次接触了 Java，但在实际工作中使用到并发编程的次数屈指可数，所以尽管日常的使用或许没有问题，但对实现细节了解不深，还不能做到“知其所以然”。这一系列文章——尽管在写下这句话时还只有这第一篇文章，但我希望自己能够坚持写成一个系列——是我在探索“所以然”过程中的思考和记录，希望对后来人能够有帮助吧。&lt;/p&gt;
+
+&lt;p&gt;因为这篇文章的初衷是学习笔记而非教程，所以不会从创建10个 Thread 打印10句 &amp;ldquo;Hello, world!&amp;rdquo; 开始，而是在每篇文章中选取一个较小的主题，结合自己阅读 JDK 源代码的心得和网上搜索到的资料写成。由于 Java 是个拥有20年历史的古老项目，而且特别注重向后兼容性，因而有新旧 API 共存、某些设计反直觉、设计思想不统一等不利于后来人理解的因素，我也希望能够尽可能从历史的角度来解释“所以然”。&lt;/p&gt;
+
+&lt;p&gt;当然因为止于 Java 我还是初学者，而文章里涉及历史时也包含推测的部分，如果在阅读中发现有错误和缺陷的话，还请大家留言指正。&lt;/p&gt;
+
+&lt;p&gt;以上差不多是写下这篇文章的初衷，我们开始吧。&lt;/p&gt;
+
+&lt;h1 id=&#34;如何让一个线程停下来&#34;&gt;如何让一个线程停下来&lt;/h1&gt;
+
+&lt;h2 id=&#34;问题&#34;&gt;问题&lt;/h2&gt;
+
+&lt;p&gt;并发和锁，就像孪生子一样是离不开的两个概念。很少有程序可以在没有锁控制的情况下完成一些有意义的工作，最常见的使用多线程的情况就是：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;父线程把任务分割成 n 部分。&lt;/li&gt;
+&lt;li&gt;分别把 n 个部分分配给 n 个线程。&lt;/li&gt;
+&lt;li&gt;等待 n 个线程处理完成。&lt;/li&gt;
+&lt;li&gt;验收子线程的结果，进行下一步处理。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其中的第3步——“等待”，就离不开锁。或者反过来说，锁的意义就在于“等待”，是为了控制线程之间的执行次序。&lt;/p&gt;
+
+&lt;p&gt;于是问题来了，&lt;strong&gt;Java 里面有多少种让线程停下来的方法呢？&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;答案&#34;&gt;答案&lt;/h2&gt;
+
+&lt;p&gt;答案是我也不知道 :) 因为在 JDK 提供的 &lt;code&gt;wait()&lt;/code&gt;、&lt;code&gt;park()&lt;/code&gt;、&lt;code&gt;join()&lt;/code&gt;、&lt;code&gt;lock()&lt;/code&gt; 的基础上可以自由地构造阻塞线程的函数，所以可以说有无数种办法让线程停下来，但是在这里我把 JDK 最常用的几种方法以及它们的特性整理成了一张表。这篇文章会重点关注这些 Java 锁机制的基础函数，并且稍候会详细解释一下它们的实现方法。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;函数&lt;/th&gt;
+&lt;th&gt;版本&lt;/th&gt;
+&lt;th&gt;消耗 CPU&lt;/th&gt;
+&lt;th&gt;能否被 Interrupt&lt;/th&gt;
+&lt;th&gt;核心方法&lt;/th&gt;
+&lt;th&gt;线程状态&lt;/th&gt;
+&lt;th&gt;备注&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;spinlock&lt;/td&gt;
+&lt;td&gt;1.0&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;native&lt;/td&gt;
+&lt;td&gt;RUNNABLE&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;wait()&lt;/td&gt;
+&lt;td&gt;1.0&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;native&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;LockSupport.park()&lt;/td&gt;
+&lt;td&gt;1.5&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;native&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;sleep()&lt;/td&gt;
+&lt;td&gt;1.0&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;native&lt;/td&gt;
+&lt;td&gt;TIMED_WAITING&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;join()&lt;/td&gt;
+&lt;td&gt;1.0&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;wait()&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;suspend()&lt;/td&gt;
+&lt;td&gt;1.0&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;native&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;已弃用&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;ReentrantLock.lock()&lt;/td&gt;
+&lt;td&gt;1.5&lt;/td&gt;
+&lt;td&gt;部分是&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;park()&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;有可 Interrupt 版本 lockInterruptibly()&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;Condition.await()&lt;/td&gt;
+&lt;td&gt;1.5&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;park()&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;有不可 Interrupt 版本 awaitUninterruptibly()&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;FutureTask.get()&lt;/td&gt;
+&lt;td&gt;1.5&lt;/td&gt;
+&lt;td&gt;否&lt;/td&gt;
+&lt;td&gt;是&lt;/td&gt;
+&lt;td&gt;park()&lt;/td&gt;
+&lt;td&gt;WAITING&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;以上函数在没有特别注明 Class 名时，均指 Thread 对象的方法。&lt;/p&gt;
+
+&lt;p&gt;首先介绍最核心的三种阻塞方法：&lt;code&gt;Spinlock&lt;/code&gt;、&lt;code&gt;wait()&lt;/code&gt;、&lt;code&gt;LockSupport.park()&lt;/code&gt;，其他阻塞线程的方法大多是通过调用这三个方法来实现的。&lt;/p&gt;
+
+&lt;h3 id=&#34;spinlock-自旋锁&#34;&gt;Spinlock（自旋锁）&lt;/h3&gt;
+
+&lt;p&gt;自旋锁是最简单的一种阻塞线程的办法，就是在一个死循环里不断检查等待的条件是否满足，直至满足之后才跳出循环。很显然，&lt;strong&gt;自旋锁的最大缺点是白白消耗计算资源&lt;/strong&gt;，并且把调度的责任完全交给了线程调度器。但是&lt;strong&gt;自旋锁最大的优点就是减少线程切换的次数&lt;/strong&gt;。因为线程切换需要CPU从用户态进入核心态，是非常昂贵的操作。特别是在等待时间较短时，频繁地切换线程的运行状态可能得不偿失。&lt;/p&gt;
+
+&lt;p&gt;下面是一段最简单的自旋锁实现&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;for (;;) {
+    if (condition == true)
+        break;
+}
+
+// do stuff
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;wait&#34;&gt;wait()&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;wait()&lt;/code&gt; 是从 Java 1.0 开始就存在的老牌“等待”函数，在 Java 1.5 以前是最主要的一类用于线程间进行同步的方法。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;wait()&lt;/code&gt; 的使用方法相对比较“怪异”。首先调用 &lt;code&gt;wait()&lt;/code&gt; 的线程需要获得一个用于线程间共享的对象的“锁”（在 Java 术语中称为“监视器”），然后调用 &lt;code&gt;wait()&lt;/code&gt; 会首先释放这把锁，并将当前线程暂停，只有在其他进程通过调用共享对象的 &lt;code&gt;notify()&lt;/code&gt; 或者 &lt;code&gt;notifyAll()&lt;/code&gt; 时才会醒来。但是醒来之后也不是说立即就会得到执行，只是线程会重新加入对锁对象的竞争，只有竞争胜出之后才会获得运行权。&lt;/p&gt;
+
+&lt;p&gt;典型的使用 &lt;code&gt;wait()&lt;/code&gt; 函数的代码是这样的&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 等待者(Thread1)
+synchronized (lock) {
+    while (condition != true) {
+        lock.wait()
+    }
+
+    // do stuff
+}
+
+// 唤醒者(Thread2)
+synchronized (lock) {
+    condition = true;
+    lock.notify();
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;为什么-wait-需要配合-synchronized-使用&#34;&gt;为什么 &lt;code&gt;wait()&lt;/code&gt; 需要配合 &lt;code&gt;synchronized&lt;/code&gt; 使用？&lt;/h4&gt;
+
+&lt;p&gt;在 stackoverflow 上有个&lt;a href=&#34;http://stackoverflow.com/questions/2779484/why-must-wait-always-be-in-synchronized-block&#34;&gt;帖子&lt;/a&gt;对这个问题进行了讨论。我认为最主要的原因是为了防止以下这种情况&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 等待者(Thread1)
+while (condition != true) { // step.1
+    lock.wait() // step.4
+}
+
+// 唤醒者(Thread2)
+condition = true; // step.2
+lock.notify(); // step.3
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在对之前的代码去掉 &lt;code&gt;synchronized&lt;/code&gt; 块之后，如果在等待者&lt;strong&gt;判断 &lt;code&gt;condition != true&lt;/code&gt; 之后而调用 &lt;code&gt;wait()&lt;/code&gt; 之前&lt;/strong&gt;，唤醒者**将 &lt;code&gt;condition&lt;/code&gt; 修改成了 &lt;code&gt;true&lt;/code&gt; 同时调用了 &lt;code&gt;notify()&lt;/code&gt; **的话，那么等待者在调用了 &lt;code&gt;wait()&lt;/code&gt; 之后就没有机会被唤醒了。&lt;/p&gt;
+
+&lt;h3 id=&#34;locksupport-park&#34;&gt;LockSupport.park()&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;LockSupport.park()&lt;/code&gt;（以下简称 &lt;code&gt;park()&lt;/code&gt; ）可能是 Java 1.5 加入 &lt;code&gt;java.util.concurrent&lt;/code&gt; 包时最重要的函数了，因为很多 &lt;code&gt;java.util.concurrent&lt;/code&gt; 中的功能类都是利用 &lt;code&gt;park()&lt;/code&gt; 来实现它们各自的阻塞。在 &lt;code&gt;park()&lt;/code&gt; 之前 Java 也有过类似功能的函数——&lt;code&gt;suspend()&lt;/code&gt;，相应的唤醒函数是 &lt;code&gt;resume()&lt;/code&gt;。不过 &lt;code&gt;suspend()&lt;/code&gt; 有个严重的问题是父线程有可能在调用 &lt;code&gt;suspend()&lt;/code&gt; 之前子线程已经调用了 &lt;code&gt;resume()&lt;/code&gt;，那么这个 &lt;code&gt;resume()&lt;/code&gt; 并不会解除在它之后的 &lt;code&gt;suspend()&lt;/code&gt;，因此父线程就会陷入永久的等待中。相比于 &lt;code&gt;suspend()&lt;/code&gt;，&lt;code&gt;park()&lt;/code&gt; 可以在以下几种情况解除线程的等待状态：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;在 &lt;code&gt;park()&lt;/code&gt; 前曾经调用过该线程的 &lt;code&gt;unpark()&lt;/code&gt; 进而获得了&lt;strong&gt;一次&lt;/strong&gt;“继续执行的权利”，此时调用 &lt;code&gt;park()&lt;/code&gt; 会立即返回，并且消耗掉相应的“继续执行的权利”。&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;park()&lt;/code&gt; 进入等待状态之后，有其他线程以该线程为目标调用 &lt;code&gt;unpark()&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;park()&lt;/code&gt; 进入等待状态之后，有其他线程以该线程为目标调用 &lt;code&gt;interrupt()&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;park()&lt;/code&gt; 进入等待状态之后，&lt;strong&gt;有可能&lt;/strong&gt;会没有理由地解除等待状态。（这也是为什么推荐在循环体中调用 &lt;code&gt;park()&lt;/code&gt;，并在返回之后再次检查条件是否满足。）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其中第一条就可以保证 &lt;code&gt;park()&lt;/code&gt; 不会遇到和 &lt;code&gt;suspend()&lt;/code&gt; 同样的问题。&lt;/p&gt;
+
+&lt;p&gt;最简单的使用 &lt;code&gt;park()&lt;/code&gt; 是这样的&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 等待者(Thread1)
+while (condition != true) {
+    LockSupport.park();
+}
+
+// 唤醒者(Thread2)
+condition = true;
+LockSupport.unpark(Thread1);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以上三个函数是 Java 1.5 之后最基本也是最核心的使得线程进入等待状态的方法，接下来介绍在这三个方法的基础上实现，但也很常用的一些阻塞线程的方法。&lt;/p&gt;
+
+&lt;h3 id=&#34;join&#34;&gt;join()&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;join()&lt;/code&gt; 也是和 &lt;code&gt;wait()&lt;/code&gt; 一样的老牌等待函数，其内部使用了 &lt;code&gt;wait()&lt;/code&gt; 实现等待功能。因为线程在运行结束时会调用 &lt;code&gt;this.notifyAll()&lt;/code&gt;，所以相应地就会唤醒使用 &lt;code&gt;join()&lt;/code&gt; 开始等待的线程。&lt;/p&gt;
+
+&lt;p&gt;已最开始提到的“父线程等待子线程完成任务”的问题为例，典型的使用 &lt;code&gt;join()&lt;/code&gt; 的代码如下&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// spawn a child thread and start it
+Thread child = new Thread(...);
+child.start();
+
+// parent thread continues waiting
+child.join();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;reentrantlock-lock&#34;&gt;ReentrantLock.lock()&lt;/h3&gt;
+
+&lt;p&gt;这是随着 &lt;code&gt;java.util.concurrent&lt;/code&gt; 包同时加入的泛用的锁对象，用于用户实现自己的线程同步策略，特别是那些很难用 &lt;code&gt;synchronized&lt;/code&gt; 原语表达的情况（例如对一个双向链表进行并发地更新）。内部使用 &lt;code&gt;park()&lt;/code&gt; 来实现等待。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;lock()&lt;/code&gt; 使用方法比较直观，最简单的实例代码如下&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;final Lock lock = new ReentrantLock();
+try {
+    lock.lock();
+
+    // do stuff
+
+} finally {
+    lock.unlock();
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;condition-await&#34;&gt;Condition.await()&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;Condition&lt;/code&gt; 类也是在 Java 1.5 之后新加入的并发控制类。如果说 &lt;code&gt;Lock&lt;/code&gt; 是用来替代 &lt;code&gt;synchronized&lt;/code&gt; 的话，那么 &lt;code&gt;Condition&lt;/code&gt; 就是用来替代 &lt;code&gt;wait()&lt;/code&gt;、&lt;code&gt;notify()&lt;/code&gt; 和 &lt;code&gt;notifyAll()&lt;/code&gt; 的，相应的函数名分别是 &lt;code&gt;await()&lt;/code&gt;、&lt;code&gt;signal()&lt;/code&gt; 和 &lt;code&gt;signalAll()&lt;/code&gt;。注意到因为 &lt;code&gt;wait()&lt;/code&gt; 是 &lt;code&gt;Object&lt;/code&gt; 下的函数，所以 &lt;code&gt;Condition&lt;/code&gt; 自然也有它的 &lt;code&gt;wait()&lt;/code&gt;，为了不重名只好把新的函数命名成为 &lt;code&gt;await()&lt;/code&gt;，&lt;code&gt;signal()&lt;/code&gt; 还有 &lt;code&gt;signalAll()&lt;/code&gt; 也是基于同样的理由。&lt;/p&gt;
+
+&lt;p&gt;内部同样使用 &lt;code&gt;park()&lt;/code&gt; 实现等待。&lt;/p&gt;
+
+&lt;h3 id=&#34;future-get&#34;&gt;Future.get()&lt;/h3&gt;
+
+&lt;p&gt;使用过 &lt;code&gt;ExecutorService&lt;/code&gt; 或者 NIO 的话一定对 &lt;code&gt;Future&lt;/code&gt; 不会陌生，而 &lt;code&gt;Future&lt;/code&gt; 的 &lt;code&gt;get()&lt;/code&gt; 是阻塞方法，内部也是使用 &lt;code&gt;park()&lt;/code&gt; 来阻塞调用者的线程。&lt;/p&gt;
+
+&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
+
+&lt;p&gt;Java 尽管语言的设计目标中包括了对多线程的原生支持，但初期的并发控制原语和函数 &lt;code&gt;synchronized&lt;/code&gt;、&lt;code&gt;wait()&lt;/code&gt;、&lt;code&gt;notify()&lt;/code&gt; 的使用方法并不太友好，而且由于有时不够灵活的缘故，在设计粒度更细的并发控制机制时可能会捉襟见肘。自从 Java 1.5 引入了 &lt;code&gt;java.util.concurrent&lt;/code&gt; 之后才大幅好转。以上介绍的较为底层的函数诸如 &lt;code&gt;park()&lt;/code&gt;、&lt;code&gt;lock()&lt;/code&gt; 可能大部分时候不需要和它们直接打交道，但是在使用在这些函数基础上构建出来的 &lt;code&gt;Semaphore&lt;/code&gt;、&lt;code&gt;CountDownLatch&lt;/code&gt;、&lt;code&gt;CyclicBarrier&lt;/code&gt; 时，如果能够对底层细节“知其所以然”的话，相信能够更好地理解为何需要这么写，以及出现问题时也能够及时地理解问题的根源。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>任天堂面试记</title>
+      <link>http://blog.dyngr.com/blog/2014/11/02/interview-for-nintendo</link>
+      <pubDate>Sun, 02 Nov 2014 22:59:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2014/11/02/interview-for-nintendo</guid>
+      <description>
+
+&lt;p&gt;找工作也算是尘埃落定了。对于任天堂，很遗憾地在终面挂了，不过这也是一种结果吧。想当初面试之前，在网上搜了很久的面经，包括日文的，都没有找到很有价值的信息，甚至知乎上常有的“在xx公司工作是怎样一番体验”中也没有任天堂，不知是不是大家已经忘了这家从制作花札起家，把“尽人事以听天命”作为社名由来，曾经盛极一时近三年来却一直亏损的百年老铺。这里我姑且记录一下自己的面试经历，算是给后人提供一个参考吧。&lt;/p&gt;
+
+&lt;h1 id=&#34;经验教训&#34;&gt;经验教训&lt;/h1&gt;
+
+&lt;p&gt;如果没有兴趣了解具体的细节的话，以下就是个人面试以后总结的经验和教训：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;预留充足的时间。&lt;/p&gt;
+
+&lt;p&gt;任天堂的面试时间极长，从投简历到终面出结果需要2到3个月时间，因此几乎不可能和其他公司的面试平行地进行，在决定转职之初就必须考虑到这一点并相应地安排整个转职活动的日程。其实从这一点上就可以看出任天堂依然是一家传统日本公司，而不是提倡敏捷和快节奏的 IT 公司。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;扎实的基本功。&lt;/p&gt;
+
+&lt;p&gt;任天堂的招聘过程中有其他公司社招中相对少见的线上笔试一环，题目内容五花八门，从 .bss segment 到 image sprites 都有涉猎，自然也有程序员喜闻乐见的算法题，不过平心而论难度不高（相对于 Leetcode 来说），但对知识面有一定的要求。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;和任天堂的相性。&lt;/p&gt;
+
+&lt;p&gt;找工作我觉得相性还是很重要的，或者说是否和这个企业的文化合拍。毕竟面试官也是人，而人又总是会希望寻找自己的同类。就我个人的感觉，任天堂一线的程序员还是比较开放的，和一般认知中的 Geek 工程师的印象比较吻合，而高层管理就相对偏保守，有自己的一套传统的价值观。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;放低姿态。&lt;/p&gt;
+
+&lt;p&gt;这基本上可以说是我自己的问题，有些时候过于激进，特别是面对相对保守的高层管理层的时候。保持一种谦逊的姿态，并不仅仅是在面试，在职场中也是需要的。我把这一点看做是终面失利的最大收获。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;漫漫长路&#34;&gt;漫漫长路&lt;/h1&gt;
+
+&lt;p&gt;任天堂整个招聘的流程包括：&lt;/p&gt;
+
+&lt;p&gt;投递简历 &amp;ndash;&amp;gt; 线上笔试 &amp;ndash;&amp;gt; 一次面试+现场编程 &amp;ndash;&amp;gt; 二次面试 &amp;ndash;&amp;gt; 最终面试&lt;/p&gt;
+
+&lt;h2 id=&#34;简历和笔试&#34;&gt;简历和笔试&lt;/h2&gt;
+
+&lt;p&gt;我投递简历的时间是8月18日，职位是东京支店的网络应用开发工程师（ネットワークアプリケーションエンジニア），在填写了基本信息以及职业履历之后提交了表单。由于我提交的时间正好是周六晚上，于是直到下周一才收到线上笔试的通知。这里就有个教训，&lt;strong&gt;应该在工作日提交简历&lt;/strong&gt;，这样就可以拿周末的时间来做笔试题，从而节约笔试选考的时间。&lt;/p&gt;
+
+&lt;p&gt;笔试内容包括5组判断题，每组10问，限时2分钟。以及5道编程题，限时依据难度不同。总耗时约4小时，努力一点的话一个晚上也完全可以搞定，不过我当时因为对难度一无所知，保险起见分成了3个晚上完成。&lt;/p&gt;
+
+&lt;p&gt;笔试提交完成的页面还有个马里奥过关时跳到旗杆上的图，很有趣。（忘记截图了，以下为概念图）&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20141102/mario-catching-flag.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;然后就有邮件发来确认答卷已收到，并告知笔试结果会在&lt;strong&gt;一个月&lt;/strong&gt;以内（但不做保证）通知我。这是我第一次意识到任天堂的面试可能注定是一场马拉松……&lt;/p&gt;
+
+&lt;h2 id=&#34;一次面试&#34;&gt;一次面试&lt;/h2&gt;
+
+&lt;p&gt;等待笔试结果的期间又面试了一些其他公司，基本上面试之后一两天就有反馈，难免对任天堂拖沓的作风有些不满。在等待了两周依然没有任何回音以后，我选择了主动向任天堂的人事部门发邮件，说明了其他公司连二面都已经快面完了诸如此类的情况。邮件的效果倒是立竿见影，第二天任天堂就回复说笔试结果良好，现在正在安排一次面试的时间，之后会邮件通知，但尽管如此依然又等了一个礼拜才收到一面通知，而且时间安排在下周二（9月16日），也就是说事实上我等足了一个月才终于轮到一面……&lt;/p&gt;
+
+&lt;p&gt;一面的内容是技术面，其中包括了现场编程。好消息是除了任天堂会准备电脑以外，也允许自己携带笔记本。自然是选择带着自己心爱的 Air 去面试了:) 面试官是两位工程师，一位看起来比较年轻，估计30岁出头，另一位稍老，可能40多岁了吧。值得一提的是任天堂的工程师都是穿着工作服的，对，就是那种卡其布淡蓝色工作服。可能在流行自由和叛逆的 Geek 界显得有点格格不入，不过我个人其实还是很喜欢的这种 good old 的东西的:) 现场编程的内容不难，比线上笔试还要简单，所以不到30分钟就结束了。然后两个面试官轮流会问一些设计的问题，主要就是服务器的各种架构。同时让你设计一个类似 Twitter 的 web 服务并在小黑板上画出来，询问一些关键点比如说数据库的瓶颈如何解决，分布式的架构如何设计等等，这些就要看经验了。&lt;/p&gt;
+
+&lt;h2 id=&#34;二次面试&#34;&gt;二次面试&lt;/h2&gt;
+
+&lt;p&gt;一次面完之后又是一周的等待时间，不过相对来说还是可以接受的。二次面试也是惯例地安排在下周，所以面试一次的实质时间是2周。二面同样是在东京支店浅草桥，这里顺便补一张任天堂东京支店的照片&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20141102/nintendo-tokyo.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;二面的面试官有三位，其中一位是在&lt;a href=&#34;http://next.rikunabi.com/tech/docs/ct_s03600.jsp?p=002015&#34;&gt;Tech総研对任天堂东京支店的访谈&lt;/a&gt;也有登场的中村桑。三人同样是穿着卡其布工作服。二面的氛围和之前的一面一样是比较轻松的，毕竟工程师之间的共同语言比较多。三位面试官都是比较平易近人的类型，这一点给我的印象很好。二面的基本内容和一面差不多，只不过因为我刚工作两年左右，所以对于大学期间的活动也问得比较多，包括毕业论文的研究课题，仿人机器人小组的活动，为什么来日本和 kayac 等等。问得比较详细的是我在 kayac 做得最自豪的项目，需要在小黑板上画出整体的设计，架构，以及部分的实现，还有自己觉得哪些地方设计得不错。整场面试持续一个小时左右，基本上只要放松心态，自然发挥就可以了。事实上这也是我最喜欢任天堂的地方：自然而不做作。&lt;/p&gt;
+
+&lt;h2 id=&#34;最终面试&#34;&gt;最终面试&lt;/h2&gt;
+
+&lt;p&gt;可能是二面时我提到已经有 offer 面临选择，希望任天堂能够快一点面试的关系，二面结果一反寻常地第二天就发邮件通知我了。终面是一个星期之后，在任天堂的本社京都进行。能够走到本社面试这一步，其实还是很有成就感的——可见我确实是个缺乏自信的人，只不过是终面而已。等待终面的期间又特别难熬，因为已经辞职，每天都是在家看 coursera 的&lt;a href=&#34;https://class.coursera.org/compilers-004&#34;&gt;编译器课程&lt;/a&gt;，或者打打 &lt;a href=&#34;http://bioshock.wikia.com/wiki/Bioshock_Infinite&#34;&gt;bioshock infinite&lt;/a&gt;，又或者出去散散步之类的。&lt;/p&gt;
+
+&lt;p&gt;终面有四位面试官，给我的感觉都是公司的高层管理，至少工作15年以上了。为什么会是15年？因为一位看起来像是技术主管的面试官问我的第一个问题就是：“你觉得如果在任天堂工作15年，你的目标是成为怎样的人？”终面的问题大部分都是这一类型，包括为什么离职，为什么选择任天堂，在任天堂希望实现什么目标，之前是否有管理经验等等。其中看起来像是人事经理的一位面试官问了一个很尖锐的问题：“你说你来任天堂是为了挑战新事物，那如果任天堂不能提供给你这些的话你是否会选择辞职呢？”，其实透过之前的问答我已经多少察觉到在任天堂高层的眼里任天堂更多的是稳重坚实的传统企业，所以有点后悔转职理由说成挑战新事物，然而覆水难收，只好在思忖了片刻之后说“是的”，虽然之后也解释了一些原因不过感觉给对方带来的印象很不好，特别之前也问了很多有关我是否能够长期在任天堂工作的问题。从最后的结果来看，任天堂应该比较看重员工的忠诚心，这点很接近传统的日本企业。当然我犯的错误并不只有这个，最后人事经理还问了一个问题：“对于你手头上的 offer 你说下个星期给他们答复，但是恐怕任天堂不能在一个星期内给你答复，你能够推迟其他公司的答复时间吗？”，我比较为难地请任天堂能够“尽快”给我答复，最好还是在一个星期之内。现在想来，&lt;strong&gt;对于一个每一次面试都需要考虑两个星期的公司来说，要求他们在一个星期内做出是否录用一个人的决定还是太勉强了。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;结果&#34;&gt;结果&lt;/h2&gt;
+
+&lt;p&gt;终面是10月9日，10月10日我在京都玩了一天（任天堂所有面试都是报销交通费的，非常人性化）。在周五晚回到横滨，过了一个周末之后任天堂就给我发邮件了。结果，很遗憾。&lt;/p&gt;
+
+&lt;h1 id=&#34;尾声&#34;&gt;尾声&lt;/h1&gt;
+
+&lt;p&gt;两个月的求职生活就着任天堂的这封邮件也结束了。结果未免还是有点遗憾的。不过，既然命运给我如此的安排，一定有其道理，只要顺其自然就好了。史铁生有一句话，每次我在失落的时候总会想起：&lt;strong&gt;上帝给每个人都安排了幸福的一生，我们的任务就是把它走完。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;慢慢走吧。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>我是如何失去价值50000美元的Twitter用户名的</title>
+      <link>http://blog.dyngr.com/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username</link>
+      <pubDate>Sat, 08 Feb 2014 11:35:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username</guid>
+      <description>
+
+&lt;p&gt;这是一篇在Twitter上看到的文章，文章的作者因为使用了独立域名的邮箱地址作为网站的登录邮箱，导致在DNS服务器被攻破时失去了很多网站帐号的控制，最终损失了价值50000美刀的Twitter帐号。独立域名邮箱作为提升逼格的一种重要手段，相信还是有不少程序员对此趋之若鹜的XD 特别推荐倒数第二段作者吸取的教训，很值得一看。&lt;/p&gt;
+
+&lt;p&gt;====&lt;/p&gt;
+
+&lt;h1 id=&#34;我价值50000美元的twitter用户名被盗了&#34;&gt;我价值50000美元的Twitter用户名被盗了&lt;/h1&gt;
+
+&lt;h1 id=&#34;感谢paypal和godaddy&#34;&gt;感谢PayPal和GoDaddy&lt;/h1&gt;
+
+&lt;p&gt;我有一个很稀有的Twitter用户名，&lt;strong&gt;@N&lt;/strong&gt;。是的，只有一个字母。曾经有人出价50000美元向我购买这个用户名。也有很多人尝试盗我的帐号，密码重置邮件出现在我的邮箱里是一件很稀疏平常的事。然而今天，这个用户名已经不再属于我。我被迫放弃了它。&lt;/p&gt;
+
+&lt;p&gt;2014年1月20日，在我吃午饭的时候收到一封来自PayPal的验证码短信。我想又有人在尝试盗我的PayPal帐号了。于是我无视了它，继续吃我的午饭。&lt;/p&gt;
+
+&lt;p&gt;又过了一会儿，我查看了一下我的独立域名邮箱（通过Google Apps服务绑定到Gmail邮箱，域名注册于GoDaddy），发现最后一封邮件是来自于GoDaddy的“确认修改账户信息”。有一个很好的理由可以解释为什么这会是最后一封邮件。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;support@godaddy.com&amp;gt; GoDaddy&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 12:50:02 -0800&lt;br /&gt;
+Subject: Account Settings Change Confirmation&lt;/p&gt;
+
+&lt;p&gt;尊敬的 naoki hiroshima&lt;/p&gt;
+
+&lt;p&gt;您收到这封邮件是因为以下账户的账户设置已被修改：&lt;/p&gt;
+
+&lt;p&gt;XXXXXXXX&lt;/p&gt;
+
+&lt;p&gt;新的设置生效需要一段短暂的时间。&lt;/p&gt;
+
+&lt;p&gt;如果这项变更未经您本人同意，请登录您的账户并升级您的安全设置。&lt;/p&gt;
+
+&lt;p&gt;如果您无法登录您的账户或者发现未经许可的域名变动，请联系我们的客服中心：support@godaddy.com 或拨打电话 (480) 505-8877。&lt;/p&gt;
+
+&lt;p&gt;请注意您的账户使用需要遵守我们的服务条款。&lt;/p&gt;
+
+&lt;p&gt;竭诚为您服务，&lt;br /&gt;
+GoDaddy&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我尝试登录我的GoDaddy账户，不过登录不进去。我又打电话给GoDaddy的客服，解释我现在的状况。客服询问我信用卡号码的末6位，作为验证我身份的手段，不过这显然行不通因为信用卡信息已经被盗号者改了。事实上，我的所有信息都被修改了。我没有办法证明我才是这个域名的真正持有者。&lt;/p&gt;
+
+&lt;p&gt;GoDaddy的客服建议我在GoDaddy上填写一份失窃申报，附上任何政府出具的可以证明我身份的证件 (government identification)。我照他的话做了，并被告知至多48小时内会得到回复。我曾天真地以为这对于证明我的身份和我对帐号的所有权足够了。&lt;/p&gt;
+
+&lt;h1 id=&#34;胁迫的开始&#34;&gt;胁迫的开始&lt;/h1&gt;
+
+&lt;p&gt;大部分网站使用Email作为验证身份的方式。如果你的邮箱被人攻破，那攻击者可以轻易地重置你在其他网站的密码。在控制了我托管在GoDaddy的域名以后，那个攻击者已经控制了我的邮箱。&lt;/p&gt;
+
+&lt;p&gt;基于以往被攻击的经验，我迅速地意识到我的Twitter用户名是这次攻击的目标。很奇怪的，有个我不认识的人发给我一条Facebook信息让我修改Twitter帐号的邮箱地址。我猜测这是攻击者发来的，虽然不知道他的意图不过我还是修改了邮箱。现在Twitter邮箱就变成攻击者无法进入的了。&lt;/p&gt;
+
+&lt;p&gt;攻击者多次尝试重置我的Twitter密码但发现收不到重置密码的邮件，因为MX记录从修改到生效需要一些时间。他甚至在Twitter的Zendesk用户支持页面开了一个issue #16134409。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;N, Jan 20 01:43 PM:&lt;/p&gt;
+
+&lt;p&gt;Twitter用户名: @n&lt;br /&gt;
+您的Email: *****@*****.***&lt;br /&gt;
+上次登录: 12月&lt;br /&gt;
+手机号码(可选): n/a&lt;br /&gt;
+附注(可选): 我没有收到我的重置密码邮件，你能手动发给我一份吗？&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Twitter要求攻击者提供更多信息以便处理，于是攻击者就放弃了这条途径。&lt;/p&gt;
+
+&lt;p&gt;之后我知道攻击者已经取得了我的Facebook帐号以便和我交涉。在朋友们开始询问我在Facebook上那些奇怪行为的时候我感到糟糕透了。&lt;/p&gt;
+
+&lt;p&gt;最后我收到一封来自攻击者的邮件。攻击者试图威胁我放弃。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 15:55:43 -0800&lt;br /&gt;
+Subject: Hello.&lt;/p&gt;
+
+&lt;p&gt;我发现你已经和我的一个同伙聊过了，我可以告诉你你的推测是正确的，我的目标正是@N。我还要告诉你的是你的GoDaddy域名已经被我控制了，并且发了一封伪造的订单，你的域名可能会被godaddy收回然后再也见不到了。&lt;/p&gt;
+
+&lt;p&gt;我看到你似乎管理着不少不错的网站我目前还没有去动它们，所有那些网站的数据还完好无损。你是否考虑一下妥协呢？登录@N五分钟让我交换一下用户名，以此来换回你的godaddy帐号以及一些保护帐号的建议呢？&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;过了一会儿，我收到来自GoDaddy的回复。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: change@godaddy.com&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 17:49:41 -0800&lt;br /&gt;
+Subject: Update [Incident ID: 21773161] — XXXXX.XXX&lt;/p&gt;
+
+&lt;p&gt;很不幸，域名服务无法协助您的变更请求因为您不是该域名的当前注册人。作为注册商我们只能在注册人同意的情况下处理变更请求。如果您准备进一步追诉则您需要决定采用以下一种或者多种方式&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;登录 &lt;a href=&#34;http://who.godaddy.com/&#34;&gt;http://who.godaddy.com/&lt;/a&gt; 查看当前域名的Whois信息并和域名注册人直接交涉。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;登录 &lt;a href=&#34;http://www.icann.org/dndr/udrp/approved-providers.htm&#34;&gt;http://www.icann.org/dndr/udrp/approved-providers.htm&lt;/a&gt; 寻找一个ICANN认证的仲裁服务提供商。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;向您的律师提供以下链接以便向GoDaddy提交相关法律文件：&lt;a href=&#34;http://www.godaddy.com/agreements/showdoc.aspx?pageid=CIVIL_SUBPOENA&#34;&gt;http://www.godaddy.com/agreements/showdoc.aspx?pageid=CIVIL_SUBPOENA&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我的申告被拒绝了因为我不是“当前注册人”。GoDaddy向攻击者询问他是否允许我改变当前用户信息，尽管他并没有询问过我是否同意攻击者修改我的用户信息。我对GoDaddy这种使得真正的所有者找回他们被盗帐号变得更困难的行为感到无比的愤怒。&lt;/p&gt;
+
+&lt;p&gt;我的一位同事帮我联系到了GoDaddy的一名高管，那位高管试图让GoDaddy的安全小组来处理这件事情，不过后来就没有消息了。或许是马丁·路德·金纪念日的关系。&lt;/p&gt;
+
+&lt;p&gt;然后攻击者又给我发了一封邮件。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 18:50:16 -0800&lt;br /&gt;
+Subject: …hello&lt;/p&gt;
+
+&lt;p&gt;你想好要交换所有权了吗？godaddy帐号已经准备就绪了。密码已经修改，同时绑定到了一个中立的邮箱。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我咨询了一位在Twitter工作的朋友如果攻击者拿到我的用户名以后是否还有可能追回。此时我想起了&lt;a href=&#34;http://www.wired.com/gadgetlab/2012/08/apple-amazon-mat-honan-hacking/&#34;&gt;发生在@mat身上的事&lt;/a&gt;，决定现在放弃是避免造成无法挽回的损失的唯一办法。于是我回复了攻击者：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+To: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+Date: Mon, 20 Jan 2014 19:41:17 -0800&lt;br /&gt;
+Subject: Re: …hello&lt;/p&gt;
+
+&lt;p&gt;我已经改名了。拿走。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我把用户名 @N 改成了 @N_is_stolen ，这是我从2007年注册Twitter以来第一次改名。再见了，我那总是带来麻烦的用户名。&lt;/p&gt;
+
+&lt;p&gt;然后我收到了以下回复。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 19:44:02 -0800&lt;br /&gt;
+Subject: RE: …hello&lt;/p&gt;
+
+&lt;p&gt;非常感谢，你的godaddy帐号密码是V;Mz,3{;!’g&amp;amp;&lt;/p&gt;
+
+&lt;p&gt;如果你有兴趣的话，我可以告诉你我是怎么盗了你godaddy帐号，以及你应该怎么保护自己的帐号。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;攻击者很快控制了 @N 用户名，而我也重新登录了我的GoDaddy帐号。&lt;/p&gt;
+
+&lt;h1 id=&#34;paypal和godaddy-让攻击更简单&#34;&gt;PayPal和GoDaddy，让攻击更简单&lt;/h1&gt;
+
+&lt;p&gt;我问攻击者如何盗取了我的GoDaddy帐号，然后收到了以下回复：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 19:53:52 -0800&lt;br /&gt;
+Subject: RE: …hello&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;我打电话给paypal的客服中心，用了一些很简单的社会工程技巧就得到了你的信用卡号末四位。（&lt;strong&gt;要避免这一点，你需要告诉paypal让他们在你帐号的备注里加上：绝不在电话里透露关于你的任何信息。&lt;/strong&gt;）&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;接着我又打电话到godaddy说我的信用卡丢了，不过我依然记得最后四位，客服就给了我一个范围让我说出信用卡的前两位（你那次是00-09）。我不知道怎样才能让godaddy更安全，不过我可以推荐给你一些更安全的域名注册商： NameCheap或者eNom（不是network solutions而是enom.com）。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我不知道该说哪个让我更震惊，无论是PayPal轻而易举地在电话里就向攻击者透露了我的信用卡末四位，还是GoDaddy接受信用卡末四位+前两位作为验证身份的方法。当我问及这些时，攻击者回复到：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 20:00:31 -0800&lt;br /&gt;
+Subject: RE: …hello&lt;/p&gt;
+
+&lt;p&gt;没错，paypal在电话里告诉了我信用卡信息（我谎称自己是你公司的雇员），而godaddy让我“猜”信用卡的前两位。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;不过要猜中两位数字也不是那么容易的一件事，不是吗？&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: &amp;lt;swiped@live.com&amp;gt; SOCIAL MEDIA KING&lt;br /&gt;
+To: &amp;lt;*****@*****.***&amp;gt; Naoki Hiroshima&lt;br /&gt;
+Date: Mon, 20 Jan 2014 20:09:21 -0800&lt;br /&gt;
+Subject: RE: …hello&lt;/p&gt;
+
+&lt;p&gt;我在一次通话中就猜中了，大部分客服都允许你不断试直到猜中。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;他很幸运因为只要猜两位数字而且在一次通话中就猜中了。事实是，GoDaddy允许他反复尝试直到猜中。太疯狂了。听起来就好像我面对的是未来的&lt;a href=&#34;http://zh.wikipedia.org/wiki/%E5%87%AF%E6%96%87%C2%B7%E7%B1%B3%E7%89%B9%E5%B0%BC%E5%85%8B&#34;&gt;凯文·米特尼克&lt;/a&gt;——而各大公司还没有从米特尼克于1995年左右的所利用的漏洞中吸取足够的教训。&lt;/p&gt;
+
+&lt;h1 id=&#34;避免使用独立域名邮箱作为登录邮箱&#34;&gt;避免使用独立域名邮箱作为登录邮箱&lt;/h1&gt;
+
+&lt;p&gt;在GoDaddy帐号恢复了以后，我终于重新得以登录我的邮箱。我把很多网络服务的注册邮箱改成了@gmail.com地址。使用我的绑定了独立域名的Google Apps邮箱看起来很酷，但是存在被盗的风险——在域名服务器被攻破的时候。要是我登录Facebook使用的是@gmail.com邮箱的话，本来攻击者就没法控制我的Facebook帐号了。&lt;/p&gt;
+
+&lt;p&gt;如果你也正在使用Google Apps作为很多网站的登录邮箱，那我强烈推荐你停止这么做。换一个@gmail.com邮箱。你的独立域名邮箱可以作为日常通信用，就像我现在依然这么做一样。&lt;/p&gt;
+
+&lt;p&gt;同时，我建议你为MX记录设一个相对较长的TTL以防万一。在这次事件中我的TTL是1小时，因此在失去了对域名服务器的控制以后，我没有足够多的时间继续接收邮件。如果TTL设成7天那么长的话，我会有更大的机会找回被盗的帐号。&lt;/p&gt;
+
+&lt;p&gt;使用两步验证是必需的。很可能这就是阻止了攻击者登录我的PayPal帐号的原因。虽然这次事件表明即使两步验证也不能防止所有被盗的可能性。&lt;/p&gt;
+
+&lt;h1 id=&#34;总结&#34;&gt;总结&lt;/h1&gt;
+
+&lt;p&gt;愚蠢的公司很可能把你的个人信息（例如信用卡号码的一部分）交给一个不怀好意的人。而其中的某些公司甚至允许仅通过信用卡的最后几位来验证你的身份。&lt;/p&gt;
+
+&lt;p&gt;为了避免这些公司的草率处理毁了你的“数字人生”，不要让诸如PayPal或是GoDaddy这样的公司保存你的信用卡信息，事实上我已经把我的删掉了。同时我也会尽快地离开GoDaddy和PayPal。&lt;/p&gt;
+
+&lt;p&gt;====&lt;/p&gt;
+
+&lt;p&gt;惯例在最后附上原文地址：&lt;a href=&#34;https://medium.com/p/24eb09e026dd&#34;&gt;https://medium.com/p/24eb09e026dd&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;什么？你说某篇文章的下篇？因为想了想剩下的内容要讲得有趣不容易，反倒是炫耀的成分显得更多，下次拣个机会再写吧&lt;/p&gt;
+
+&lt;p&gt;——其实真正的原因是当初的草稿找不到了，已经快忘了还准备讲什么了……&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>一次格式化字符串攻击（上）</title>
+      <link>http://blog.dyngr.com/blog/2013/11/03/format-string-attack</link>
+      <pubDate>Sun, 03 Nov 2013 10:22:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/11/03/format-string-attack</guid>
+      <description>
+
+&lt;p&gt;最近大部分时间都花在做&lt;a href=&#34;http://ksnctf.sweetduet.info&#34;&gt;这组题&lt;/a&gt;上了（当然还有&lt;a href=&#34;http://en.wikipedia.org/wiki/Grand_Theft_Auto_V&#34;&gt;GTA5&lt;/a&gt;，不愧是2.6亿打造出来的游戏啊），题目的类型很丰富，涉及密码破解、反汇编、sql注入、hash碰撞等等，而且大部分都包含提示，搜索一下关键词就能找到破解的线索，或者真不济……还有公司里同事所写的&lt;a href=&#34;http://ichirin2501.hatenablog.com/entry/2012/06/11/001540&#34;&gt;解题报告&lt;/a&gt; :)&lt;/p&gt;
+
+&lt;p&gt;今天在这里主要记载一下&lt;a href=&#34;http://ksnctf.sweetduet.info/problem/4&#34;&gt;第四题&lt;/a&gt;的解题过程，因为在这题上花费了最多的时间，而且又是我比较喜欢的汇编级别的漏洞利用，当然最重要的是，借由这题了解了一种过去不知道的攻击方式——格式化字符串攻击（format string attack）。&lt;/p&gt;
+
+&lt;p&gt;注：本文需要一定程度的汇编知识，虽然尽可能地做到详细解释，不过对汇编和c语言的汇编表示不太熟悉的朋友强烈推荐看一下&lt;a href=&#34;http://book.douban.com/subject/5407246/&#34;&gt;CSAPP&lt;/a&gt;的第三章。&lt;/p&gt;
+
+&lt;h2 id=&#34;问题&#34;&gt;问题&lt;/h2&gt;
+
+&lt;p&gt;这一题的背景是这样的：&lt;/p&gt;
+
+&lt;p&gt;以q4用户登录服务器之后，可以发现home目录下有两个文件，其中flag.txt包含本次破解的密码，但是owner是q4a用户并且权限是owner只读，另一个是可执行文件q4，owner是q4a但是所有用户均可执行，这就是需要破解的对象了。&lt;/p&gt;
+
+&lt;p&gt;程序的运行结果是这样的：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What&#39;s your name?
+foo
+Hi, foo
+
+Do you want the flag?
+yes
+Do you want the flag?
+yes
+Do you want the flag?
+I neeeeeeeed it!
+Do you want the flag?
+no
+I see. Good bye.
+vagrant@lucid32:/vagrant/4-villager-a$
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对q4反汇编之后得到如下的汇编代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;80485b4 &amp;lt;main&amp;gt;:
+80485b4:       55                      push   %ebp
+80485b5:       89 e5                   mov    %esp,%ebp
+80485b7:       83 e4 f0                and    $0xfffffff0,%esp
+80485ba:       81 ec 20 04 00 00       sub    $0x420,%esp
+80485c0:       c7 04 24 a4 87 04 08    movl   $0x80487a4,(%esp)
+80485c7:       e8 f8 fe ff ff          call   80484c4 &amp;lt;puts@plt&amp;gt;
+80485cc:       a1 04 9a 04 08          mov    0x8049a04,%eax
+80485d1:       89 44 24 08             mov    %eax,0x8(%esp)
+80485d5:       c7 44 24 04 00 04 00    movl   $0x400,0x4(%esp)
+80485dc:       00
+80485dd:       8d 44 24 18             lea    0x18(%esp),%eax
+80485e1:       89 04 24                mov    %eax,(%esp)
+80485e4:       e8 9b fe ff ff          call   8048484 &amp;lt;fgets@plt&amp;gt;
+80485e9:       c7 04 24 b6 87 04 08    movl   $0x80487b6,(%esp)
+80485f0:       e8 bf fe ff ff          call   80484b4 &amp;lt;printf@plt&amp;gt;
+80485f5:       8d 44 24 18             lea    0x18(%esp),%eax
+80485f9:       89 04 24                mov    %eax,(%esp)
+80485fc:       e8 b3 fe ff ff          call   80484b4 &amp;lt;printf@plt&amp;gt;
+8048601:       c7 04 24 0a 00 00 00    movl   $0xa,(%esp)
+8048608:       e8 67 fe ff ff          call   8048474 &amp;lt;putchar@plt&amp;gt;
+804860d:       c7 84 24 18 04 00 00    movl   $0x1,0x418(%esp)
+8048614:       01 00 00 00
+8048618:       eb 67                   jmp    8048681 &amp;lt;main+0xcd&amp;gt;
+804861a:       c7 04 24 bb 87 04 08    movl   $0x80487bb,(%esp)
+8048621:       e8 9e fe ff ff          call   80484c4 &amp;lt;puts@plt&amp;gt;
+8048626:       a1 04 9a 04 08          mov    0x8049a04,%eax
+804862b:       89 44 24 08             mov    %eax,0x8(%esp)
+804862f:       c7 44 24 04 00 04 00    movl   $0x400,0x4(%esp)
+8048636:       00
+8048637:       8d 44 24 18             lea    0x18(%esp),%eax
+804863b:       89 04 24                mov    %eax,(%esp)
+804863e:       e8 41 fe ff ff          call   8048484 &amp;lt;fgets@plt&amp;gt;
+8048643:       85 c0                   test   %eax,%eax
+8048645:       0f 94 c0                sete   %al
+8048648:       84 c0                   test   %al,%al
+804864a:       74 0a                   je     8048656 &amp;lt;main+0xa2&amp;gt;
+804864c:       b8 00 00 00 00          mov    $0x0,%eax
+8048651:       e9 86 00 00 00          jmp    80486dc &amp;lt;main+0x128&amp;gt;
+8048656:       c7 44 24 04 d1 87 04    movl   $0x80487d1,0x4(%esp)
+804865d:       08
+804865e:       8d 44 24 18             lea    0x18(%esp),%eax
+8048662:       89 04 24                mov    %eax,(%esp)
+8048665:       e8 7a fe ff ff          call   80484e4 &amp;lt;strcmp@plt&amp;gt;
+804866a:       85 c0                   test   %eax,%eax
+804866c:       75 13                   jne    8048681 &amp;lt;main+0xcd&amp;gt;
+804866e:       c7 04 24 d5 87 04 08    movl   $0x80487d5,(%esp)
+8048675:       e8 4a fe ff ff          call   80484c4 &amp;lt;puts@plt&amp;gt;
+804867a:       b8 00 00 00 00          mov    $0x0,%eax
+804867f:       eb 5b                   jmp    80486dc &amp;lt;main+0x128&amp;gt;
+8048681:       8b 84 24 18 04 00 00    mov    0x418(%esp),%eax
+8048688:       85 c0                   test   %eax,%eax
+804868a:       0f 95 c0                setne  %al
+804868d:       84 c0                   test   %al,%al
+804868f:       75 89                   jne    804861a &amp;lt;main+0x66&amp;gt;
+8048691:       c7 44 24 04 e6 87 04    movl   $0x80487e6,0x4(%esp)
+8048698:       08
+8048699:       c7 04 24 e8 87 04 08    movl   $0x80487e8,(%esp)
+80486a0:       e8 ff fd ff ff          call   80484a4 &amp;lt;fopen@plt&amp;gt;
+80486a5:       89 84 24 1c 04 00 00    mov    %eax,0x41c(%esp)
+80486ac:       8b 84 24 1c 04 00 00    mov    0x41c(%esp),%eax
+80486b3:       89 44 24 08             mov    %eax,0x8(%esp)
+80486b7:       c7 44 24 04 00 04 00    movl   $0x400,0x4(%esp)
+80486be:       00
+80486bf:       8d 44 24 18             lea    0x18(%esp),%eax
+80486c3:       89 04 24                mov    %eax,(%esp)
+80486c6:       e8 b9 fd ff ff          call   8048484 &amp;lt;fgets@plt&amp;gt;
+80486cb:       8d 44 24 18             lea    0x18(%esp),%eax
+80486cf:       89 04 24                mov    %eax,(%esp)
+80486d2:       e8 dd fd ff ff          call   80484b4 &amp;lt;printf@plt&amp;gt;
+80486d7:       b8 00 00 00 00          mov    $0x0,%eax
+80486dc:       c9                      leave
+80486dd:       c3                      ret
+80486de:       90                      nop
+80486df:       90                      nop
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这是一段比较简单易懂的汇编代码（而且最重要的是还很短！），仔细阅读之后，基本可以还原出源代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;string.h&amp;gt;
+
+int main(int argc, char *argv[])
+{
+    int flag;
+    char buf[1024];
+    FILE* f;
+
+    puts(&amp;quot;What&#39;s your name?&amp;quot;);
+
+    fgets(buf, 1024, stdin);
+    printf(&amp;quot;Hi, &amp;quot;);
+    printf(buf);
+    putchar(&#39;\n&#39;);
+
+    flag = 1;
+    while (flag == 1){
+        puts(&amp;quot;Do you want the flag?&amp;quot;);
+
+        if (fgets(buf, 1024, stdin) == NULL)
+            return 0;
+
+        if (!strcmp(buf, &amp;quot;no\n&amp;quot;)){
+            puts(&amp;quot;I see. Good bye.&amp;quot;);
+            return 0;
+        }
+    }
+
+    f = fopen(&amp;quot;/home/q4a/flag.txt&amp;quot;, &amp;quot;r&amp;quot;);
+    fgets(buf, 1024, f);
+    printf(buf);
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;可以发现控制程序流程的是关键变量flag，但在程序内部却没有任何能够改变flag值的办法，因此程序会进入死循环，永远不会走到打开flag.txt文件的第29行。同时大家应该也会注意到第13行至第15行写得很怪异，最自然的写法应该是：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;printf(&amp;quot;Hi, %s\n&amp;quot;, buf);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;但原文却没有选择这样写，而是分为了三段，而这正是破解的关键。注意到第14行printf(buf) ，这是一句将用户输入直接打印出来的语句，相信做惯了互联网开发的同学会直觉性地察觉到这就像把用户输入直接插入sql查询语句中一样散发着异味。对于普通的字符串，printf(buf)和printf(&amp;ldquo;%s&amp;rdquo;, buf)确实是相同的，但如果字符串中包含 %d 和 %x 这样的特殊字符呢？&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What&#39;s your name?
+%d
+Hi, 1024
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;printf打印出来的不再是我们的输入，而是一个看起来似乎有意义的数字1024。为什么呢？这就涉及格式化字符串攻击的原理了。&lt;/p&gt;
+
+&lt;h2 id=&#34;原理&#34;&gt;原理&lt;/h2&gt;
+
+&lt;p&gt;printf有三个特性，最终使得格式化字符串攻击成为可能。其中第一条就是：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;当printf的format string是一个用户可控的字符串时，如果其中包含有%d这样特殊意义的字符时，printf就会根据format string的指示，把堆栈中接下来的地址作为余下的参数解释，从而做出程序作者没有预期的行为。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;上例中，format string是一个单独的 %d，因为printf的第一个参数也就是format string的地址保存在 %esp，则printf会取接下来 %esp+0x4 上的四个字节作为整数输出，那么 %esp+0x4 保存的值又是什么呢？将目光往上移动两行就会发现，这是fgets的第二个参数——1024，因为fgets之后没有语句改动过这个地址，所以依然残留在堆栈里。&lt;/p&gt;
+
+&lt;p&gt;在这里程序已经表现出了一定程度的脆弱性，而且事实上我们还可以完全控制传递给printf的所有参数，不仅仅是显示fgets的第二个参数。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;80485dd:       8d 44 24 18             lea    0x18(%esp),%eax
+80485e1:       89 04 24                mov    %eax,(%esp)
+80485e4:       e8 9b fe ff ff          call   8048484 &amp;lt;fgets@plt&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;透过这三行汇编代码可以看出 char* buf 被分配在 %esp+0x18 这个地址上，printf 的参数解析是从 %esp 开始的，因此只要在format string的最前面加上5个 %x（算上format string本身，正好是6个参数，也就是0x18个字节），接下来的参数就会在我们可以控制的buf中取用。例如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What&#39;s your name?
+[%08x][%08x][%08x][%08x][%08x]%08x
+Hi, [00000400][0026b440][0014139c][0000332c][00000000]3830255b
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后的&lt;code&gt;3830255b&lt;/code&gt;，用 &lt;a href=&#34;http://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Data/endian.html&#34;&gt;Little Endian&lt;/a&gt; 表示就是&lt;code&gt;5b 25 30 38&lt;/code&gt;，对应的ASCII字符就是&lt;code&gt;[%08&lt;/code&gt;，正是输入字符串的前四个字符。&lt;/p&gt;
+
+&lt;p&gt;所以如果传给printf的字符串是&lt;code&gt;\x78\x56\x34\x12[%08x][%08x][%08x][%08x][%08x]%s&lt;/code&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;，那么printf就会很高兴地将&lt;code&gt;\x78\x56\x34\x12&lt;/code&gt;作为需要输出的字符串地址，从而把内存地址为12345678的值作为字符串打印出来，直到遇到\0为止。（虽然这个地址大部分情况下是不可读的，使得我们只能得到一个segfault。）&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;vagrant@lucid32:/vagrant/4-villager-a$ echo -ne &#39;\x78\x56\x34\x12[%08x][%08x][%08x][%08x][%08x]%s&#39; &amp;gt;/tmp/input
+vagrant@lucid32:/vagrant/4-villager-a$ cat /tmp/input | ./q4
+What&#39;s your name?
+Segmentation fault
+vagrant@lucid32:/vagrant/4-villager-a$
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;不过还能让人稍稍宽心一点的是，到目前为止，printf只能输出内存中的值，无法进行修改，因此可以做的事情非常有限。然而printf还有一个比较冷门的特性：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;printf有个特殊的格式符%n，作用是在对应参数所给出的地址写入目前为止输出的字符个数。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;%n让printf有了修改内存的能力，而这正是格式化字符串攻击的核心。如果我们传给printf的字符串是&lt;code&gt;\x78\x56\x34\x12[%08x][%08x][%08x][%08x][%08x]%n&lt;/code&gt;，那么printf就会在地址12345678处写入54&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;，也就是之前输出的字符个数。换言之，我们有了&lt;strong&gt;在任意地址写入任意值&lt;/strong&gt;的能力。&lt;/p&gt;
+
+&lt;p&gt;不过还有一个问题，因为%n写入的是之前输出的字符数，所以我们必须控制字符数成为我们希望的值，固然不断地增加%x可以做到（理论上），但现实是堆栈大小是有限的，很有可能会读出界从而segfault，或者构造出的攻击字符串太长超过了fgets的缓冲区大小根本无法读入。于是这里我们就需要利用到printf的第三个特性：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;在format string中可以指定输出的位数，例如 %020x 就是用20位输出一个十六进制值，不足的位数用0补全。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;vagrant@lucid32:/vagrant/4-villager-a$ ./q4
+What&#39;s your name?
+%020x
+Hi, 00000000000000000400
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这就是压死printf的最后一根稻草了，现在我们真正拥有了&lt;strong&gt;在任意地址写入任意值&lt;/strong&gt;的能力！&lt;/p&gt;
+
+&lt;h4 id=&#34;下期预告&#34;&gt;下期预告&lt;/h4&gt;
+
+&lt;p&gt;对于构造攻击字符还有一些需要解决的细节问题值得提一下（以及我自己陷进去的坑），另外为了实际解开那一题，还需要利用到GOT覆写（GOT overwrite）的知识，这些都放到下篇吧~&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;注意这里的前四个字节是十六进制值。如何向标准输入中输入十六进制值？这就需要&lt;code&gt;echo -ne&lt;/code&gt;或是&lt;code&gt;printf&lt;/code&gt;了。当然，还有一个最近写的小工具……放到下次再介绍吧。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;（\x78\x56\x34\x12，4个十六进制字符）4 +（[%08x]*5，左括号1个字符，十六进制数字8个字符，右括号1个字符）(1 + 8 + 1) * 5 = 54
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>关于滨野纯的访谈</title>
+      <link>http://blog.dyngr.com/blog/2013/09/26/junio-c-hamano-interview</link>
+      <pubDate>Thu, 26 Sep 2013 17:15:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/09/26/junio-c-hamano-interview</guid>
+      <description>
+
+&lt;p&gt;&lt;a href=&#34;http://blog.dyngr.com/blog/2013/09/13/git-diffs-options&#34;&gt;上一篇&lt;/a&gt;文章中提到，最近正在阅读&lt;a href=&#34;http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809&#34;&gt;《入门Git》&lt;/a&gt;，搜索作者&lt;a href=&#34;https://plus.google.com/108182106411180467879/posts&#34;&gt;滨野纯&lt;/a&gt;相关信息的时候搜到了以下这篇著名博客作家&lt;a href=&#34;http://ja.wikipedia.org/wiki/%E5%B0%8F%E9%A3%BC%E5%BC%BE&#34;&gt;小饲弹&lt;/a&gt;对滨野纯的访谈，里面提及了滨野纯当初参与Git项目时的轶事，以及他对于开源项目的看法。特别是滨野纯说“Git是他第一次有一定规模地向开源项目提交代码”，很是鼓舞人——对那些想参与开源项目但缺乏信心的同学。所以趁闲把访谈全文翻译了一下，原文请见：&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://gihyo.jp/dev/serial/01/alpha-geek/0040&#34;&gt;#22 Gitメンテナ 濱野純：小飼弾のアルファギークに逢いたい&amp;hearts;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;ps：至于最后的 &amp;hearts; 我就不吐槽了……&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;今天我们的嘉宾，是分布式版本管理系统Git的主要维护者，同时也是《入门Git》一书的作者，滨野纯先生。而这次的访谈，也从滨野先生谈自己从Linux内核的开发者，Linus Torvalds手中接过Git维护工作的原委开始了。&lt;/p&gt;
+
+&lt;h2 id=&#34;结识git的经过&#34;&gt;结识Git的经过&lt;/h2&gt;
+
+&lt;p&gt;小饲弹（以下简称弹）：当初是因为什么原因参与Git了的开发呢？&lt;/p&gt;
+
+&lt;p&gt;滨野纯（以下简称滨）：2005年4月起Linux Kernel所使用的版本管理系统BitKeeper就因为Licence关系无法继续使用了，所以Linus考察了很多当时的版本管理系统，但认为没有一个是能用的。于是他在邮件列表里发了一封邮件，说自己写了一些代码，准备作为在找到更好的版本管理系统之前的过渡系统。而我看到那封邮件时，正好是我的本职工作处于旧项目刚刚完成而新项目还未上马的间歇时期。我觉得这似乎是件挺有意思的事情，于是就把代码下载了下来，看了一下发现只有1244行。&lt;/p&gt;
+
+&lt;p&gt;弹：全部都是C代码吗？&lt;/p&gt;
+
+&lt;p&gt;滨：是啊。这点代码量我估计2小时左右应该就能读完了。仔仔细细地读了一遍以后，被代码所表现出来的优美折服了。基本上我不算是一个Kernel开发者，Kernel邮件列表也只是偶尔看一眼的程度而已。但是，如果说参与数十万行的Kernel开发确实有点困难的话，参与这个尚且才1000多行代码的项目应该会很有趣，这算是当初参与Git的动机之一。那时候，在一周时间内发生了很多事，不过归纳起来就是Linux的内核开发者们听说Linus要用个“新玩意”来管理代码，如果那个“新玩意”太难用的话大家都痛苦，还不如一起想办法把这个东西做好用点。而我也得以在开发中观察这个项目的进展，思考这个新系统真正需要的是什么等等，总之最后完成了提交commit的功能和输出diff的功能。不过，merge功能还没有完成。虽然Linux当时发过好几封邮件，描述他理想中的merge应该是怎样的。&lt;/p&gt;
+
+&lt;p&gt;弹：Linus对既往的版本管理系统，最不满的就是这方面吧。&lt;/p&gt;
+
+&lt;p&gt;滨：因为Linus只写C和Shell，而merge的逻辑实在太复杂，所以他多次发邮件到邮件列表，说要是有人能够用脚本语言实现一个就好了。不过谁也没有上钩。就这么过了一个星期，一直关注邮件列表的我用Perl把Linus过去多次提到的merge算法实现并投到了邮件列表里。这是我第一次有一定规模地向开源项目贡献代码。然而，尽管我详细地写了将近30个测试用例以及各种分支条件下应该怎么处理的表格，6个小时以后Linus提交到master分支的却是个截然不同的东西。据本人说是想到了更好的办法所以就这么着了。我看了一下，确实就像哥伦布的鸡蛋一样——足以让我那些依照Linus以前的逻辑所写的代码毫无价值——就是优雅到这种程度。不过之前你还说什么“谁来帮忙做一下啊”我做了结果你又不要（笑），然而当时并没有这么想，因为新的处理方法确实很漂亮。&lt;/p&gt;
+
+&lt;h2 id=&#34;哥伦布的鸡蛋&#34;&gt;哥伦布的鸡蛋&lt;/h2&gt;
+
+&lt;p&gt;弹：为什么说是哥伦布的鸡蛋呢？&lt;/p&gt;
+
+&lt;p&gt;滨：我虽然没有使用过BitKeeper，不过BitKeeper的做法是在work tree里基本上只存放自己的文件，而merge不发生在这里。merge时首先会创建一个临时文件夹，在里面展开merge结果，发生冲突时就在里面解决，然后提交commit并在work tree里展开，这样就算merge完成了。最初Git也准备使用相同的流程，不过解决了冲突以后的代码，commit前想测试一下也是人之常情。所以我们就想那不如不要临时文件夹，直接在work tree上merge就行了…。Git在提交commit之前，不是有个记录了本次commit内容的index吗？对于这个index，当初提出了引入分步骤（stage）的概念。也就是说，本来所谓3-way-merge就是，首先我们有一个共同的版本，你在这个版本的基础上做了一些变更，我在这个版本的基础上做了另一些变更，然后将这两个差分merge起来。那么把这三个版本分别作为stage1，stage2，stage3依次添加到index里，那merge不就完成了吗——Linus当时就是提出了这样的建议。仔细想想这种做法确实可以一下子解决很多问题。例如最简单的情况，我和你都没有做出变更，那么merge的结果就是没有变更。如果我做了变更而你没有，那么最后得到的就是我变更以后的代码，反之亦然。另外还有一种特殊的情况，就是你和我都做了“相同”的变更。&lt;/p&gt;
+
+&lt;p&gt;弹：这种事经常有啊（笑）。&lt;/p&gt;
+
+&lt;p&gt;滨：实际使用过以后发现确实如此，特别是Linux Kernel的开发，是基于邮件列表的。所以常有你我看到同一个patch，因为自己使用的版本是fix对象于是各自都打上了这个patch。这种情况也能在index中解决，不仅效率很高，结果也很清晰。&lt;/p&gt;
+
+&lt;h2 id=&#34;linus的管理才能&#34;&gt;Linus的管理才能&lt;/h2&gt;
+
+&lt;p&gt;滨：Linus常说，项目维护者的一半工作就是说No。不过即便如此，在拒绝别人提交的patch的时候，他总会向提交者强调，拒绝是因为这个提交不行，而不是你的能力不行。他对每个贡献者都很看重。我那时候也是，Linus对我说，虽然你的提交没有采用，但测试用例还是能用的，针对现在的实现你稍微修正一下吧。&lt;/p&gt;
+
+&lt;p&gt;弹：挺不错啊。&lt;/p&gt;
+
+&lt;p&gt;滨：让对方觉得自己的工作没有白费，这样就不会打击贡献者的热情。不仅提出新的merge算法很厉害，Linus作为社区管理者的才能也很厉害。不服不行啊（笑）。&lt;/p&gt;
+
+&lt;h2 id=&#34;github&#34;&gt;GitHub&lt;/h2&gt;
+
+&lt;p&gt;弹：GitHub和Git有组织上的联系吗？GitHub不是Git社区的人，而是Git爱好者做的吗？&lt;/p&gt;
+
+&lt;p&gt;滨：这个关系说来复杂了。GitHub的创始人都是Git社区以外的人。那些人基本上算是Ruby的人吧。Ruby社区开始大量使用Git应该是Rails采用Git作为版本管理以后的事。GitHub最初在还没有像现在这样流行之前，曾经采用邀请制试运营过一段时间，但是Git社区的主要成员却都没有收到邀请。虽然我个人不很在意，不过有些人觉得GitHub那群人在拿Git商业化所以很不爽，结果很长一段时间两个社区之间不怎么和睦。&lt;/p&gt;
+
+&lt;p&gt;弹：Git和GitHub是这种关系啊（笑）。都不很看重对方。&lt;/p&gt;
+
+&lt;p&gt;滨：经常会有无视对方自顾自地开发这种事，就比如官方Git和GitHub的Git的daemon程序在某些地方是不同的。GitHub做了一些他们自己的改动。面向大量用户做出这种非官方的版本，作为Git社区也很苦恼啊。&lt;/p&gt;
+
+&lt;p&gt;弹：是啊。&lt;/p&gt;
+
+&lt;p&gt;滨：然后呢，去年&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;有一个GitTogether的活动，Google提供了场地，一共进行了三天吧，GitHub和Git社区的主要成员都来了，探讨了今后的发展方向，现在两个社区的关系应该没有过去那么差了。事实上，你也觉得GitHub的帮助文档很不错吧。有GitHub替我们做文档以及用户支持，何乐而不为呢。&lt;/p&gt;
+
+&lt;p&gt;弹：因为过去什么经验都没有的人也可以在GitHub上直接fork项目是吧。确实这种方式我觉得足以改变世界。从一开始就不仅是公开代码…。&lt;/p&gt;
+
+&lt;p&gt;滨：大家一起做一个项目，然后互相merge，这种工作流程很不错。&lt;/p&gt;
+
+&lt;p&gt;弹：我也是，如果没有GitHub的话也不会知道Git。&lt;/p&gt;
+
+&lt;p&gt;滨：是的，那是非常新颖的方式。尽管有些小地方很希望能够改一下，但是GitHub在普及Git上功不可没。&lt;/p&gt;
+
+&lt;p&gt;弹：就是看到了它，才终于明白为什么Linus不满足于过去的版本管理系统了。（那些过去的版本系统）都没法merge嘛。说到底，对于Linux Kernel这种巨型的项目来说，或许merge这个分支的代码还是那个分支的代码会是一个大问题，但是对于普通的项目，只要考虑是取还是舍，维护也基本只需要一个人就足够了，再不济还可以分成多个子项目多人维护，至今为止我们都是这么过来的，所以很难理解Git的好处。而GitHub的用户时不时地就会碰到“那个分支再不merge就要出问题了”的状况，切身体会了merge的重要性。我觉得那非常好。&lt;/p&gt;
+
+&lt;h2 id=&#34;优秀程序员的品质&#34;&gt;优秀程序员的品质&lt;/h2&gt;
+
+&lt;p&gt;弹：你觉得“优秀的程序员”是怎样的一种人呢？&lt;/p&gt;
+
+&lt;p&gt;滨：当初接手Git项目时，Linus曾说过一个明星程序员有三种品质。最重要的第一点是，&lt;strong&gt;能够持之以恒地做某件事&lt;/strong&gt;。从这个角度上来说，AlphaGeek&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;是不行的。尽管对于新事物迅速投身进去不是坏事，但同时又迅速地失去兴趣就不好了。顺便我自己不那么激进不是新事物爱好者也不会三分钟热度，应该不算是AlphaGeek。&lt;/p&gt;
+
+&lt;p&gt;弹：原来如此，三分钟热度是不行的。重要的是坚持。&lt;/p&gt;
+
+&lt;p&gt;滨：第二点算是审美观吧。&lt;strong&gt;拥有良好的直觉和品位&lt;/strong&gt;，这是Linus的原话。良好的直觉，这里是指面对一个新问题时，即使没有完整地解决问题也能够凭直觉提出正确的解决思路和方向。第三点是&lt;strong&gt;沟通能力&lt;/strong&gt;。这个沟通能力不是说只要说明“我想做什么”就可以了，而是能够解释“我的目标是什么”以及我得出这一目标的整个思维过程，并且更重要的，是能够让其他人信服，简而言之就是能够将自己的目标明确传达给他人的人。我觉得这非常重要。即使在Git社区内，非常优秀的人至少也有7、8人，但能够同时兼具这三点的人非常之少。&lt;/p&gt;
+
+&lt;p&gt;弹：虽然之于审美观我有很多想对Linus说的（笑）。不过我也猜得到Linus会怎么反驳所以我还是作罢吧。话说回来，这三点中能够做到其中两点的人，估计在哪儿都会很吃香吧。做到一点就可以说工作能力很强，做到两点就可以称之为牛人了。&lt;/p&gt;
+
+&lt;p&gt;滨：说的是啊。Linus是按照我上面所说的顺序提出的这三点，从Git社区至今为止的发展过程中来看，我觉得即使是只具备其中一点的人，只要锻炼一下沟通能力，就能做任何自己想做的事了。沟通能力就是，即使自己做不到，只要把目标向其他人说明清楚了，就一定会有人来帮你达成这个目标。就是说只要表达想法可以不用非得自己动手。&lt;/p&gt;
+
+&lt;p&gt;弹：我在还没有Open Source这个词的时候就已经算混开源界了吧，不过近几年来，开源界的表达能力真是越来越高了。拿十年前来和现在比，现在的年轻人的表达能力实在不一般，不是最近流行Lightning Talk&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;嘛，就是5分钟的演讲。要是换作以前，肯定得花上30分钟絮絮叨叨才行，但是那些年轻人证明缩短到5分钟内是完全没有问题的。实际在与他人合作的过程中，过去是做出了产品原型和对方讨论这么做如何，而现在则相反，不需要做出实际的成品，只要把想法提出来就可以了。都是因为现在的工具发达了啊，网络速度变快了，应用平台也变好了。有这么一句老语，“现在的年轻人啊真是……”，我想说的是“真是很厉害”。我甚至都想表扬一下依然能够跟上这些年轻人脚步的自己了（笑）。现在已经是半年不看项目就跟不上的时代了。觉得Git很难，或许也是因为我老了吧（笑）。&lt;/p&gt;
+
+&lt;h2 id=&#34;对40岁以上的程序员说的话&#34;&gt;对40岁以上的程序员说的话&lt;/h2&gt;
+
+&lt;p&gt;弹：有什么想对40岁以上的程序员说的话吗？40多岁的程序员，已经渐渐感到追赶年轻人有点吃力，对他们有什么建议吗？虽然我想说的是，那就趁20多岁正年轻的时候多写点代码吧。&lt;/p&gt;
+
+&lt;p&gt;滨：要怎样才能成为年轻人的楷模，这个问题很困难啊。&lt;/p&gt;
+
+&lt;p&gt;弹：至少有一点，我觉得应该做到的，就是依然觉得写代码很快乐。如果抱着受罪的心态写代码，那一定是做不好工作的。这么说来，您今年几岁？&lt;/p&gt;
+
+&lt;p&gt;滨：保密（笑）。&lt;/p&gt;
+
+&lt;p&gt;弹：至少不是20、30岁了吧。我觉得还是挺厉害的。在版本管理系统中Git最年轻，但现在却正渐渐成为主流。&lt;/p&gt;
+
+&lt;p&gt;滨：是啊。&lt;/p&gt;
+
+&lt;p&gt;弹：年轻的项目不一定只有年轻人在做，我觉得这非常好。&lt;/p&gt;
+
+&lt;p&gt;至此全文完。最后附一张大叔的帅气照片。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20130926/dankogai-with-junio.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;左为小饲弹先生，右为滨野纯先生。&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;指2008年的第一届GitTogether，因原文发表于2009年。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;指一个机构内对新技术最敏感，技术力顶尖的人。参考&lt;a href=&#34;http://www.martinfowler.com/bliki/AlphaGeek.html&#34;&gt;这里&lt;/a&gt;。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;一种只有数分钟时间的演示或者演讲形式。参考&lt;a href=&#34;http://en.wikipedia.org/wiki/Lightning_talk&#34;&gt;wiki&lt;/a&gt;。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>diff的两个参数</title>
+      <link>http://blog.dyngr.com/blog/2013/09/13/git-diffs-options</link>
+      <pubDate>Fri, 13 Sep 2013 03:01:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/09/13/git-diffs-options</guid>
+      <description>&lt;p&gt;最近在读&lt;a href=&#34;https://github.com/gitster&#34;&gt;滨野纯&lt;/a&gt;所著的&lt;a href=&#34;http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809&#34;&gt;《入门Git》&lt;/a&gt;，很有意思，主要集中于书中散见各处的作者提及Git当初的设计思想和实现过程的时候。我一直相信，理解一件事物最好的方式就是理解历史。作者作为在Git尚且只是雏形时（2005年7月末）就从Linus手中接过Git的维护工作，并在接下来的数年中将其发扬光大的关键人物（ &lt;em&gt;Linus: &amp;ldquo;In the last four years under his stewardship, git has flourished and become not just a technically advanced source control manager, but one that is a pleasure to use as well.&amp;rdquo;&lt;/em&gt; ），在书中谈论当初开发时的想法和过程自然是信手拈来——&lt;/p&gt;
+
+&lt;p&gt;会这么期待说明我还是太天真了。我可以感受到作者希望让这本书“名符其实”的良苦用心，但事实证明写好入门书的权力永远都只属于入门者，作者从来就不曾是一名“Git入门者”自然不会理解初学者最需要的是什么、最困惑的是什么，一上来就讲 Three-way Merge 的原理这是要闹哪样……&lt;/p&gt;
+
+&lt;p&gt;不过还是有这么一章，相对完整地讲述了当初的设计思想，并提到了diff的两个我之前并不知道的参数，让我觉得值得一写。其实对于Git的diff和log命令，日常使用在大多数情况无参数的输出已经足够，就我个人的经验，最常使用的参数也不外乎于&lt;code&gt;-p&lt;/code&gt;，&lt;code&gt;--name-only&lt;/code&gt;，至多再修改一下&lt;code&gt;--pretty&lt;/code&gt;。然而这一章告诉我，diff能做的不止于此，或者更确切地说，Git当初的目标就考虑得比这更远。Git试图成为的是一个理解历史的&lt;strong&gt;文件系统&lt;/strong&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;p&gt;仿照书中的写法，这里也首先从Linus的一封邮件谈起。这封邮件是Linus于2005年4月投向Git的开发者邮件列表的，起因是有开发者提议在commit对象中添加rename信息，以便于SCM日后能够输出更详细的变更历史，Linus对此非常不以为然，于是就发了这封邮件，阐释他心目中理想的&lt;strong&gt;Git应该是什么&lt;/strong&gt;，而按照《入门Git》中的说法，“这封邮件成为了其后的开发工作最重要的指导方针之一”。&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;From: Linus Torvalds &amp;lt;torvalds@osdl.org&amp;gt;&lt;br /&gt;
+Subject: Re: Merge with git-pasky II.&lt;br /&gt;
+Date: 2005-04-16 01:32:46&lt;/p&gt;
+
+&lt;p&gt;好了，现在来听听我的建议。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;一个真正的信息追踪系统所记录的只有信息。所以SCM需要跟踪的只有对整个Project有意义的信息，而在比这更低的粒度下操作是不合理的。&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;……（在现有的Git系统上）事实上你能做到的比你在邮件中提到的那些还要多得多，只要你肯花点功夫。假设你现在想知道某一行代码是从哪里来的，而你正处在代码库历史的某个节点上，于是你开始挖掘历史。……你需要做的就是回溯历史，查看tree对象，确定这个文件是否有改动过。当发现文件被改动过时，你继续查看感兴趣的那行是否被改动过，如果没有改动，那很好，继续回溯就可以了；如果你运气不错，那行被改动了，你的Git可视化前端应该把结果显示给你，同时因为它能够查看到（那个commit的）全部变更，它可以提示你这些代码是从哪里来的，这只需要很少的CPU时间去扫描一下差分文件即可。你的前端程序会这么说：&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;“噢，那几行代码在上一个版本里似乎不存在。不过在差分里我找到了五处几乎完全相同的代码，你可以看看。”&lt;/p&gt;
+
+&lt;p&gt;就这样，你的前端程序非常高效地向程序员指出了这是一次将五个分布在不同文件中的类似函数合并为一个函数的重构。那如果你没能找到完全匹配的源代码，或者上一个版本的文件在那行周围都很相似，而那一行也不是“全新”的呢？这又是一个简单情况——你只需要把差分显示给程序员，由他来决定这是否就是他所要的，或是继续“追寻”历史。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;相信读到这里，比较熟悉Git的同学已经猜到，Linus在这封邮件中所提出的这种利用Git的commit树和差分文件来提炼出重命名信息的功能，已经在Git中被实现，这就是标题中的“两个参数”&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;-M: Detect renames.
+
+-C: Detect copies as well as renames.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;说实话，这是我第一次在SCM中看到此类功能，多少有点“被震撼”到（subversion据我所知是没有类似功能的，mercurial有类似的选项&lt;code&gt;--similarity&lt;/code&gt;，不过使用的地方并不同）。这两个选项基本就是依照Linus以上的想法实现的，而且不仅可以应用于diff命令，log和blame也支持同样的参数（意义则根据命令略有区别）。特别是对blame来说，&lt;code&gt;-C&lt;/code&gt;参数能够更方便地找出代码的“始作俑者”，事实上我在知道这两个参数之前（就是最近不久），为了不至于因为修改了一下别人的屎代码的缩进而被blame误认为是屎代码作者，我还写过&lt;a href=&#34;https://github.com/dyng/BlameHim&#34;&gt;这样一个插件&lt;/a&gt;……可惜的是最后也没有实际使用过。&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;这是Git尚且只是一些c和shell脚本时的论断，或者说Linus设想中的Git。Linus最初将Git设计为一个记录文件变更历史的文件系统，而SCM是在其上运行的前端，因此才有了&lt;a href=&#34;http://en.wikipedia.org/wiki/Cogito_(software)&#34;&gt;git-pasky&lt;/a&gt;。不过后来Git加入了越来越多的SCM功能，自己成为了一个SCM，这就是后话了。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;因为原文比较长，以下仅为摘译，全文请参考&lt;a href=&#34;http://article.gmane.org/gmane.comp.version-control.git/217&#34;&gt;这里&lt;/a&gt;。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;这里我的理解是，rename信息不是文件系统需要记录的信息，它只是SCM关注的东西，不应该在底层的文件系统中夹杂进本应属于上层的内容。不过说实话，我个人觉得加入rename信息也未为不可，毕竟“程序员A在一次重构中把文件X重命名为Y，并把其中的大部分函数移动到了文件Z”，在Git中的形式是“程序员A删除了文件X，添加了文件Y，其中只有很少的一些内容，同时在文件Z中添加了大量内容”，如果有rename信息的话，应该能更好地还原整个过程。
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;↩&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>欧洲人在日本</title>
+      <link>http://blog.dyngr.com/blog/2013/08/28/programming-is-funny</link>
+      <pubDate>Wed, 28 Aug 2013 17:38:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/08/28/programming-is-funny</guid>
+      <description>&lt;p&gt;看到以后笑了很久…… 译自 &lt;em&gt;HN&lt;/em&gt; 上的&lt;a href=&#34;https://news.ycombinator.com/item?id=6141330&#34;&gt;某个帖子&lt;/a&gt;。&lt;a href=&#34;https://twitter.com/patio11&#34;&gt;作者&lt;/a&gt;似乎是一位欧洲友人。&lt;/p&gt;
+
+&lt;p&gt;某家日本公司有一天决定他们需要在某个系统里面加入一些“虚拟”的员工，以支持诸如在一个职位还未招到人的情况下能够把他的工作安排进组织图表里（以及其他很多应用场景）。所以他们想到了一个很聪明的主意，“啊哈，我们可以这么干，在‘日语姓名’一栏里填入状态信息，例如 XX_JOB_REQUEST 或者 XX_INCOMINT_TRANSFER 来代表这些虚拟的员工。”&lt;/p&gt;
+
+&lt;p&gt;然后有一个该系统的程序员，觉得每添加一个新状态信息就要改动代码太麻烦了，于是他写了如下的代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;if (InternalStringUtils.isAllLatinCharacters(employee.getJapaneseName()) {
+    /* 虚拟员工，无需支付工资，因此将其从工资列表中移除 */
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为什么我会知道这段如此耐人寻味的代码，我想你们都能猜到了吧。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>程序员的命名趣味</title>
+      <link>http://blog.dyngr.com/blog/2013/08/24/how-programmer-names</link>
+      <pubDate>Sat, 24 Aug 2013 21:09:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/08/24/how-programmer-names</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;……孔乙己显出极高兴的样子，将两个指头的长指甲敲着柜台，点头说，“对呀对呀！……exec有六样写法，你知道么？”我愈不耐烦了，努着嘴走远。孔乙己刚用指甲蘸了酒，想在柜上写字，见我毫不热心，便又叹一口气，显出极惋惜的样子。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;这自然只是我的杜撰，不过 Unix 系统的 exec 确实有&lt;a href=&#34;http://en.wikipedia.org/wiki/Exec_(computing)#C_language_prototypes&#34;&gt;六种写法&lt;/a&gt;，想必当年也是害苦了不少系统程序员。其实今天我想说的，正是关于命名的事儿。相信以下已经成为程序员的共识：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;好的命名对提高可读性事半功倍，坏的命名则是代码晦涩的一大帮凶。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;但取一个好的名字又谈何容易，也无怪乎某朋友开玩笑说“（写代码）瓶颈是取变量名”了。不过凡事，博古大抵可以通今，所以这里就整理一下 *nix 系统中一些有趣的命令以及它们有趣的名字，总结一下所谓的“命名范式”，或许对大家今后的命名之道有用。&lt;/p&gt;
+
+&lt;p&gt;在这之前，再补充一个 Unix 的故事，也是很有名的：&lt;/p&gt;
+
+&lt;p&gt;Unix 诞生十多年后，有人问起 Ken Thompson 如果重新设计 Unix 会有什么不同时，Ken Thompson 答道：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;我会给 creat 加一个 e 。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这个典故源于 Unix 创建文件的系统调用 creat，关于为什么最后少了一个 e 这里也有一些&lt;a href=&#34;http://stackoverflow.com/questions/8390979/why-create-system-call-is-called-creat&#34;&gt;讨论&lt;/a&gt;。可见即便如 Thompson 这般的大牛，也对因为偷懒（节约几个字符）而牺牲可读性感到后悔啊。&lt;/p&gt;
+
+&lt;p&gt;好吧，回到正题，程序员的“命名范式”。首先自然是最为经典，最常使用，又最不费脑筋的：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;缩写式。&lt;/p&gt;
+
+&lt;p&gt;Unix 下最常被使用，最基本的几个命令：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ls = list&lt;/li&gt;
+&lt;li&gt;cd = change directory&lt;/li&gt;
+&lt;li&gt;mv = move&lt;/li&gt;
+&lt;li&gt;rm = remove&lt;/li&gt;
+&lt;li&gt;cp = copy&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;都是如此，另外还有 ln，man，pwd, fg, bg 等等，不一而足。只有 whoami 似乎不在此列，不过这是 2.9BSD（1983年）才加入的新命令，换做十年前或许就变成 wmi 了吧……&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;反义式。&lt;/p&gt;
+
+&lt;p&gt;这其实也是一个非常常见的范式，是以一个现有程序（往往就是针对它的改进）的反义词为名。最常见的例如：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;more vs less（比较讽刺的是 less 几乎是 more 的超集，less is more, huh? ）&lt;/li&gt;
+&lt;li&gt;markup vs markdown&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以及 Unix 本身就是 &lt;a href=&#34;http://en.wikipedia.org/wiki/Multics&#34;&gt;Multics&lt;/a&gt; 的反义语。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;逆序式。&lt;/p&gt;
+
+&lt;p&gt;这应该最初也是 Unix 的一种命名风格（至少就我所知，bourne shell 的条件语句 if 和 case 已经如此了），也就是对一个已有名字取其逆序为名。例如：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;sl：ls 的逆序，不过其实和 ls 没什么关系，而是个很有趣的命令 :P （能够上 youtube 的同学可以点&lt;a href=&#34;http://youtu.be/BPMd2dsSVR0&#34;&gt;这里&lt;/a&gt;查看效果）。&lt;/li&gt;
+&lt;li&gt;tac：cat 的逆序，效果也是名副其实地逆序显示一个文件……&lt;/li&gt;
+&lt;li&gt;tig：正如其名的 git 的逆序，不过和上面提到的那些 just for fun 命令不同的是，tig 是一个&lt;strong&gt;非常好用&lt;/strong&gt;的 git repository browser，强烈推荐。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;衍生式。&lt;/p&gt;
+
+&lt;p&gt;其实这个我随意起的范式名不很确切，确切地说是“用另一种语言实现的某个已有程序”，所以或许“移植系”是个更贴切的名字，不过更难听也是了……移植的典范例如：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;make -&amp;gt; rake -&amp;gt; cake：rake 是大名鼎鼎的 make 的 ruby 版（严格来说比原始的 make 功能增强了不少），而它的 coffeescript 版就变成了 cake（名字倒是挺诱人的，特别是配合 coffee 的时候 XD）。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;还有一个相对没那么有名的：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;rack -&amp;gt; plack -&amp;gt; clack：plack 是 perl 版的 rack，clack 则是 common lisp 版的。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;递增式。&lt;/p&gt;
+
+&lt;p&gt;这种命名范式最常出现在程序语言的命名中，最著名的当然就是 C 了。C 是 Ritchie 为 Unix 系统而开发的语言，由 &lt;a href=&#34;http://en.wikipedia.org/wiki/B_(programming_language)&#34;&gt;B 语言&lt;/a&gt;（Thompson 开发）发展而来，因此很自然地以 B 的下一个字母 C 为名。可以猜到的是，&lt;a href=&#34;http://en.wikipedia.org/wiki/D_(programming_language)&#34;&gt;D 语言&lt;/a&gt;，&lt;a href=&#34;http://en.wikipedia.org/wiki/E_(programming_language)&#34;&gt;E 语言&lt;/a&gt;，&lt;a href=&#34;http://en.wikipedia.org/wiki/F_(programming_language)&#34;&gt;F 语言&lt;/a&gt;什么的也都是存在的。比较奇怪的是唯独没有 A 语言……&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;YA 系。&lt;/p&gt;
+
+&lt;p&gt;大名鼎鼎的 Yet Another 家族，想必是不用我再&lt;a href=&#34;http://en.wikipedia.org/wiki/Yet_another&#34;&gt;介绍&lt;/a&gt;什么了…… 几乎可以说是命名界（这是什么界？）的万金油，每当遇到重造了轮子又懒得想名字的时候，冠上 YA 总是个最轻松的解决方案。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;GNU 系。&lt;/p&gt;
+
+&lt;p&gt;GNU 可能是这种命名方式中最有名的，所以就姑且以它作为这种命名范式的名字，当然还有一个更学术的名字叫做&lt;a href=&#34;http://en.wikipedia.org/wiki/Recursive_acronym&#34;&gt;Recursive acronym&lt;/a&gt;。这一家族中有 YAML 这种无论怎么看都是 YA 家族的家伙混了进来，只因为作者事后硬要解释为 &amp;ldquo;YAML Ain&amp;rsquo;t Markup Language&amp;rdquo; …… 所以当初就应该好好取名嘛不是！&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;东方系。&lt;/p&gt;
+
+&lt;p&gt;当然这里说的东方不是&lt;a href=&#34;http://zh.wikipedia.org/wiki/%E6%9D%B1%E6%96%B9Project&#34;&gt;那个东方&lt;/a&gt;……&lt;/p&gt;
+
+&lt;p&gt;这里特指的是那些以东洋神秘文化（多是日语）为程序取名。例如：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;zen-coding：禅编程，意境深远，嗯，其实只是写 html 而已……&lt;/li&gt;
+&lt;li&gt;Kendo UI：剑道用户接口，嗯，其实只有一个 JS 的 UI 库……&lt;/li&gt;
+&lt;li&gt;Dojo toolkit：道场工具箱，嗯，还是 JS 的工具库……&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;不知为何前端特别喜欢这类名字，只能说是文化吧…… 不过这里还需要特别提到一个网站：Heroku！从这个古怪的名字想必就可以猜到了，它是 hero 和 haiku（俳句）的结合体，虽然我完全不能理解把这两个词拼在一起是什么意思…… 顺便 Heroku 的付费方案也是延续了这种风格：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Kappa：河童。&lt;/li&gt;
+&lt;li&gt;Ronin：浪人。&lt;/li&gt;
+&lt;li&gt;Fugu：河豚。&lt;/li&gt;
+&lt;li&gt;Ika：乌贼。&lt;/li&gt;
+&lt;li&gt;Zilla：哥斯拉。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;只能说 James Lindenbaum 或许是个日本迷吧……&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;z 系。&lt;/p&gt;
+
+&lt;p&gt;z 系，顾名思义就是以 z 为首字母的程序族，特征是都接受压缩过的数据作为输入，进一步处理后以人类可读的方式输出，例如：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;zcat：cat 的z版，显示压缩文件的内容。&lt;/li&gt;
+&lt;li&gt;zgrep：grep 的z版，对压缩文件的内容进行搜索。&lt;/li&gt;
+&lt;li&gt;zdiff：diff 的z版，对两个压缩文件的内容进行比较。&lt;/li&gt;
+&lt;li&gt;zless：less 的z版，分页显示压缩文件的内容。&lt;/li&gt;
+&lt;li&gt;zsh：sh 的z版，接受用户直接输入压缩后的二进制命令并……好吧，这个是玩笑。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;合成系。&lt;/p&gt;
+
+&lt;p&gt;这主要说的是将两个约定俗成的缩写拼接在一起作为程序的名字，最大的好处就是可以让人一眼就明白这个程序是做什么的（其实所谓优秀的变量名也是如此）。这一系列的命令罗列起来就非常多了：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;memstat：显示内存状态。&lt;/li&gt;
+&lt;li&gt;netstat：显示网络状态。&lt;/li&gt;
+&lt;li&gt;iostat：显示 IO 状态。&lt;/li&gt;
+&lt;li&gt;sysstat：显示 Linux 的系统状态。&lt;/li&gt;
+&lt;li&gt;lspci：显示 PCI 插槽上的设备。&lt;/li&gt;
+&lt;li&gt;lsusb：显示 USB 口的设备。&lt;/li&gt;
+&lt;li&gt;lsof：显示所有打开的文件描述符。&lt;/li&gt;
+&lt;li&gt;lsmod：显示 Linux 内核加载的所有模块。&lt;/li&gt;
+&lt;li&gt;nettop：动态显示网络状态。&lt;/li&gt;
+&lt;li&gt;iotop：动态显示 IO 状态。&lt;/li&gt;
+&lt;li&gt;netcat：对网络端口进行输入和输出。&lt;/li&gt;
+&lt;li&gt;socat：对 socket 进行读写。（其实和 netcat 功能相仿，不过更易使用）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;几乎任意两个词随意组合就能得到一个新的程序，我其实是最欣赏这种命名方式的，因为这种名字不但能够自我解释，更难得的是用户可以一定程度上“预测”某些程序的存在。上面这些命令中就有一些我其实事先并不知道，在尝试搜索了几种组合以后才发现确实存在的。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;以上是随意整理的十种命名范式，其实是远远不足以涵盖 *nix 系统上所有命令的，例如还有使用三位作者姓名首字母缩写的 &lt;a href=&#34;http://en.wikipedia.org/wiki/AWK&#34;&gt;awk&lt;/a&gt;，以历史上&lt;a href=&#34;http://en.wikipedia.org/wiki/Ada_Lovelace&#34;&gt;第一位程序员&lt;/a&gt;命名的 &lt;a href=&#34;http://en.wikipedia.org/wiki/Ada_(programming_language)&#34;&gt;Ada&lt;/a&gt; 等等。不过这里我想再说一些 Unix 上非常混淆的命令，例如下面三个：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;write：向其他用户发送消息。&lt;/li&gt;
+&lt;li&gt;strings：在一个二进制文件中搜索 ASCII 字符串。&lt;/li&gt;
+&lt;li&gt;kill：向一个进程发送信号。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;其中 kill 恐怕是最容易让人误解的命令了，尽管在没有指定的情况下 kill 默认发送的信号是 TERM，因此不能说完全没有道理，但确实很困扰初学者，特别是&lt;a href=&#34;http://en.wikipedia.org/wiki/Signal_(computing)&#34;&gt;信号&lt;/a&gt;这种 IPC 方式现在已经较少使用的情况下。&lt;/p&gt;
+
+&lt;p&gt;总得来说，命名永远是一门大学问，虽然平时写代码时我们总会犯&lt;a href=&#34;http://kottke.org/04/03/programmings-two-worst-variable-names&#34;&gt;这样的错误&lt;/a&gt;或者&lt;a href=&#34;http://www.quora.com/Computer-Programming/What-are-some-of-the-funniest-variable-names-youve-used-or-seen-in-source-code&#34;&gt;那样的错误&lt;/a&gt;，但在可能的情况下还是尽量起一个容易理解——最好还容易记——的名字，也算是对后人做出的贡献吧。&lt;/p&gt;
+
+&lt;p&gt;至于文章开头提到的那个故事，其实还有个温馨的结局。在 Unix 系统发明已经过去 30 多年，Ken Thompson 也离开贝尔实验室来到 Google 工作之后的 2008 年，他向 Golang 提交了这样一个 &lt;a href=&#34;http://code.google.com/p/go/source/detail?r=4a3f6bbb5f0c6021279ccb3c23558b3c480d995f&#34;&gt;commit&lt;/a&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Log message
+
+spell it with an &amp;quot;e&amp;quot;
+
+R=rsc
+http://go/go-review/1025037
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>走开，Daddy</title>
+      <link>http://blog.dyngr.com/blog/2013/08/06/go-away-daddy</link>
+      <pubDate>Tue, 06 Aug 2013 15:47:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/08/06/go-away-daddy</guid>
+      <description>&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20130807/goawaydaddy.jpg&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;回头发现，这个新博客的第一周大部分时间是在和GoDaddy的折腾中度过的。虽然过去一直对GoDaddy没有特别好的印象（可能和杂乱的界面以及创始人&lt;a href=&#34;http://en.wikipedia.org/wiki/Bob_Parsons&#34;&gt;Bob Parsons&lt;/a&gt;的前海军陆战队身份有关），但当决定注册一个新域名时第一个想到的依然是GoDaddy，于是我注册了，付款了，ping通了，一切都显得很顺利。&lt;/p&gt;
+
+&lt;p&gt;只是那时的我没想到之后的一周会如此折腾。&lt;/p&gt;
+
+&lt;p&gt;差不过就是五天前，发现博客突然上不去了，DNSPod也显示域名无法解析。第一反应，可能是GoDaddy的问题吧，很自然地就想登录看看状况，这时我犯了第一个错误：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GoDaddy登录使用的不是邮箱而是用户名。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;但是GoDaddy的错误信息是不管这些的，一概显示“用户名和密码不匹配”，我只好相信我又记错密码了，于是把可能的密码都输了一遍，直到我发现GoDaddy需要的是用户名而不是邮箱时。但已经晚了，当我输入正确的用户名和正确的密码时，得到的结果是：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;This account is locked. Please contact Customer Service.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;好吧，现在我们就有两个问题了。&lt;/p&gt;
+
+&lt;p&gt;既然提示信息是“请联系客服”，所以我就开始搜索不联系客服的解决方法（之前的教训告诉我GoDaddy的提示信息是必须反着看的）。很快找到一个重置密码的办法，我试了，但是在email地址一栏显示&amp;rdquo;invalid value&amp;rdquo;，这种朴素平实的错误信息不禁让我想起公司某个即使把500 Internal Server Error抛给用户也一定要加一行大字“通信错误”的app。总之重置密码也试了好几次，但始终是&amp;rdquo;invalid value&amp;rdquo;而不得其解，我甚至都怀疑不会是因为邮箱名里有&amp;rdquo;virus&amp;rdquo;字样所以触发了过滤吧？这一次的教训就是：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;无论如何，起一个人畜无害的邮箱名总是好的。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;重置密码也无果，只能联系客服了。写邮件前顺便搜了一下邮箱，发现三封来自GoDaddy的未读邮件……因为都被标为不重要所以一直没有看到。草草浏览了一下，终于明白域名为什么被封了。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Your account has been selected by our verification office as a precautionary measure to defend you from possible misuse of either your payment method or products.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;好吧，原来我是幸运得被用户认证中心选中的用户，为了保护我不会成为信用卡盗用的受害者。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;During the login process, our secure site will prompt you to upload a viewable, scanned copy of the payment method account holder&amp;rsquo;s government-issued photo identification, such as a driver&amp;rsquo;s license or passport.  In the comments box, we ask that you also provide a brief explanation of how you intend to use the product(s) purchased. If we do not receive the requested documentation within the next 48 hours, your order(s) may be cancelled for your protection.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;然后就是要求我必须上传含照片的护照扫描件，以及最后通牒式的48小时时限。当然我看到这封邮件已经是3天后了，所以点开另一封邮件是这样的：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;As a result of this review, your recent order(s) in shopper account xxxxxxxx have been canceled.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我不明白一个26刀的域名有什么必要值得我必须扫描个人ID并且上传给一个陌生人……不过域名毕竟已经开始使用了，不能轻易失去它。但身边一时也没有ID，只好先发一份邮件请求能否延缓两天（因为上一封邮件中要求当天就需要上传），并且说明了我现在无法登录的困境。由于时差关系等了一天，收到这样的回复：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Your timely compliance will ensure a quick resolution.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;说得好像是我不配合一样。无奈只好把外国人登录证扫描成图片，正准备上传时才发现：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;上传认证信息需要登录，而我因为没有通过认证所以账号处于被封状态。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;……于是我又开始试各种解封账号的方法（给客服的邮件前一天也发了，但没有回音），在尝试“找回密码提示”的时候，突然提示让我上传认证照片！大喜过望，忙不迭地把刚扫描好的外国人登录证传上去，为了防止他们不认识，又在留言一栏里附了解释外国人登录证的wiki。搞完这些，觉得终于没问题了吧。&lt;/p&gt;
+
+&lt;p&gt;又是等了一天，收到GoDaddy的回信：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Unfortunately, the name on the identification we received does not match the name of the payment method account holder provided at the time of purchase.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;外国人登录证上的是汉字，而信用卡的名义人是罗马拼音……算了，我也不指望你们会念一个中国人名字的日语读法。这时候离当初注册已经过去一个星期了，我为了一个不到3000日元的域名，拼命地证明自己不是盗刷信用卡的罪犯，浪费时间、心力，我实在受够这种折腾了——特别是，在查看了一下护照以后发现上面写的是名字的汉语拼音以后。&lt;/p&gt;
+
+&lt;p&gt;whois了一下，好样的，已经没有记录了。滚吧，Daddy，我浪费了足够多的时间在这件愚蠢的事上，是时候和你说再见了。哦不，我再也不想见到你了。&lt;/p&gt;
+
+&lt;p&gt;上onamae注册，下单，下楼FamilyMart缴费，搞定。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;ps：&lt;/em&gt; 写完这篇文章后，在gmail的垃圾箱里无意中发现了GoDaddy客服对解封账号的回复，我明明设定了filter凡是来自GoDaddy的邮件都始终标注重要的啊……&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>搬家了</title>
+      <link>http://blog.dyngr.com/blog/2013/07/30/new-home</link>
+      <pubDate>Tue, 30 Jul 2013 22:06:00 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/07/30/new-home</guid>
+      <description>&lt;p&gt;半年多的慵懒，这里都快长草了吧。&lt;/p&gt;
+
+&lt;p&gt;近来看到同事的王桑更新&lt;a href=&#34;http://onevcat.com/&#34;&gt;博客&lt;/a&gt;很是勤快，每一篇的质量都很高，而且在 github 上也开了一个非常有影响力的&lt;a href=&#34;https://github.com/onevcat/VVDocumenter-Xcode&#34;&gt;项目&lt;/a&gt;，深受其鼓舞，让我看到并且相信&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;努力还是会有回报的。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;于是决定换个地址，换个引擎，把博客打理一下，稍微努力一把。虽然以我懒散的个性，估计是不会有本质性的转变的，不过——&lt;/p&gt;
+
+&lt;p&gt;也没啥不好的，人不应该浪费时间在努力对抗自己的弱点上，宝贵的时间更应该放在发挥自己的长项上，这才是你能区别与人的地方。或许成熟的一部分就是接受一个千疮百孔的自己，或者更直白的说，一个平庸的自己。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.dyngr.com/&#34;&gt;http://blog.dyngr.com/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;新的开始，就在这里。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>2012年年终总结</title>
+      <link>http://blog.dyngr.com/blog/2013/01/05/this-year-summary</link>
+      <pubDate>Sat, 05 Jan 2013 12:43:38 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2013/01/05/this-year-summary</guid>
+      <description>&lt;p&gt;最近大家似乎都流行写年终总结，回顾了2012年中做过的，想过的，伤心过的，感动过的……结果我也不能免俗，还是来写一下吧。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;2月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;3月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;4月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;5月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;6月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;7月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;8月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。顺便去了一趟C82。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;9月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。又顺便去了一趟东京电玩展。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;10月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;11月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;12月&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;宅。新年是在通宵打 &lt;a href=&#34;http://en.wikipedia.org/wiki/Demon%27s_Souls&#34;&gt;Demon&amp;rsquo;s Souls&lt;/a&gt; 中度过的。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Jeff Dean的二三事</title>
+      <link>http://blog.dyngr.com/blog/2012/11/29/jeff-deans-facts</link>
+      <pubDate>Thu, 29 Nov 2012 16:04:16 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2012/11/29/jeff-deans-facts</guid>
+      <description>&lt;p&gt;最早是某&lt;a href=&#34;http://chen-xiao.com/&#34;&gt;同事&lt;/a&gt;发来的&lt;a href=&#34;http://www.quora.com/Jeff-Dean/What-are-all-the-Jeff-Dean-facts&#34;&gt;链接&lt;/a&gt;，结果让我笑了一晚上……看看也不是太长，于是翻译分享一下。注：比较Geek，千茶学姐对不住了！&lt;/p&gt;
+
+&lt;p&gt;这是Google 2007年的愚人节笑话，罗列了很多Jeff Dean的“光辉事迹”。大名鼎鼎的Jeff Dean想必不用我介绍了。……好吧，还是介绍一下，Jeff Dean是Google最早的一批员工，本来的研究领域是OOT语言的优化技术，也因此是Google很多基础系统的设计者和实现者，BigTable，MapReduce的作者……介绍什么的还是太麻烦了，直接正文吧。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Jeff Dean当初面试Google时，被问到“如果P=NP能够推导出哪些结论”，Jeff回答说：“P = 0或者N = 1”。而在面试官还没笑完的时候，Jeff检查了一下Google的公钥，然后在黑板上写下了私钥。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;编译器从不警告Jeff Dean，只有Jeff警告编译器。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean的编码速度在2000年底提高了约40倍，因为他换了USB2.0的键盘。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff在提交代码前都会编译一遍，不过是为了检查编译器和链接器有没有出bug。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean有时候会调整他的工作环境和设备，不过这是为了保护他的键盘。（注：ergonomic evaluation似乎针对个人的工作环境定制服务，所以这里姑且就译成了“调整工作环境和设备”）&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;所有指针都指向Jeff Dean。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;gcc -O4的功能是发送代码给Jeff Dean重写。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean有一次没有通过图灵测试，因为他正确说出了斐波那契数列的第203项的值，在一秒钟内。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;真空中光速曾经是35英里每小时，直到Jeff Dean花了一个周末时间优化了一下物理法则。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean出生于1969年12月31日午后11点48分，他花了12分钟实现了他的第一个计时器。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean既不用Emacs也不用Vim，他直接输入代码到zcat，因为这样更快。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean发送以太网封包从不会发生冲突，因为其他封包都吓得逃回了网卡的缓冲区里。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;因为对常数级的时间复杂度感到不满意，Jeff Dean发明了世界上第一个O(1/n)算法。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;有一次Jeff Dean去旅行，期间Google的几个服务神秘地罢工了好几天。这是真事。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean被迫发明了异步API因为有一天他把一个函数优化到在调用前就返回结果了。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean首先写的是二进制代码，然后再写源代码作为文档。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean曾经写过一个O(n^2)算法，那是为了解决旅行商问题。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean有一次用一句printf实现了一个web服务器。其他工程师添加了数千行注释但依然无法完全解释清楚其工作原理。而这个程序就是今天Google首页的前端。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;真事。Jeff Dean有一次只提交了一项变更就使得（总的二进制文件体积缩小了3%）AND（一个本来优先度较低的python bug的优先度变成紧急），并且在那项变更中不包含任何python代码。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean can beat you at connect four. In three moves.（这句没看懂，还望看懂的同学指点一下orz）（补译：Jeff Dean可以下&lt;a href=&#34;http://en.wikipedia.org/wiki/Connect_Four&#34;&gt;四子棋&lt;/a&gt;时用三步就击败你。——感谢lx同学们的指点。）&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;当你的代码出现未定义行为时，你会得到一个segmentation fault和一堆损坏的数据。当Jeff Dean的代码出现未定义行为时，一个独角兽会踏着彩虹从天而降并给每个人提供免费的冰激凌。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;当Jeff Dean运行一个profiler时，循环们都会恐惧地自动&lt;a href=&#34;http://zh.wikipedia.org/wiki/%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80&#34;&gt;展开&lt;/a&gt;。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean至今还在等待数学家们发现他隐藏在PI的小数点后数字里的笑话。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean的键盘只有两个键，1和0。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean失眠的时候，就Mapreduce羊。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean想听mp3的时候，他只需要把文件cat到/dev/dsp，然后在脑内解码。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Graham Bell当初发明出电话时，他看到有一个来自Jeff Dean的未接来电。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean的手表显示的是自1970年1月1日的秒数，并且从没慢过一秒。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Jeff Dean写程序是从&amp;rsquo;cat &amp;gt;/dev/mem&amp;rsquo;开始的。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;有一天Jeff Dean出门时把笔记本错拿成了&lt;a href=&#34;http://en.wikipedia.org/wiki/Etch_A_Sketch&#34;&gt;绘画板&lt;/a&gt;。在他回去拿笔记本的路上，他在绘图板上写了个俄罗斯方块打发时间。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>最近</title>
+      <link>http://blog.dyngr.com/blog/2012/10/24/something-recently</link>
+      <pubDate>Wed, 24 Oct 2012 17:40:30 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2012/10/24/something-recently</guid>
+      <description>&lt;p&gt;在突破了“一个月至少写一篇博客“的底线之后，也就再没有什么底线……好吧，毕竟是花了120大洋买的空间，还是写点什么吧。&lt;/p&gt;
+
+&lt;p&gt;从上个月开始公司从镰仓搬到了横滨，害得我不得不提前一个小时起床去赶电车。当然也不是没有好处，比如在电车上的半个小时终于可以久违地开始看看书了，比如去东京能够又省下330日元了，比如可以在横滨吃到便宜的吉野家了（镰仓如果要吃吉野家就必须花150日元坐车到大船）。新公司位于办公楼的三十层，一头面向横滨的出海口，另一头则在雨后能够看到富士山。&lt;/p&gt;
+
+&lt;p&gt;不过也是这次大搬迁之后，不少人都离职了。有京都分社的想继续留在京都的，也有对公司前景不看好另找出路的。特别是外国员工走了很多，法国人，芬兰人，文莱人，爱沙尼亚人，乌兹别克斯坦人……都走了。也就是在和他们聊天的时候，又一次深刻体会到英语的学习不足。日本是一个相对封闭的国家，文化上很是自给自足，似乎他们也没有特别强烈的希望连接英语圈的意愿。但我作为一个外国人，在明白英语圈是一个更广阔的世界的情况下，仅仅因为英语不够好就这么放弃的话，实在是不甘心啊。&lt;/p&gt;
+
+&lt;p&gt;结果我又开始&lt;a href=&#34;http://www.towords.com/&#34;&gt;背单词&lt;/a&gt;了，然后写了&lt;a href=&#34;https://github.com/gvirus/fromWeblio&#34;&gt;这个插件&lt;/a&gt;。具体的原因请见README的关于。&lt;/p&gt;
+
+&lt;p&gt;最近因为种种原因——其实就因为我是一打杂的，别人都懒得写的就只能我来写——不得不接触一些前端的东西，时不时地被拉出来写一些页面，这才第一次开始写javascript。javascript是一个非常奇妙的语言，它有不少设计上的缺陷（参考&lt;a href=&#34;http://book.douban.com/subject/3590768/&#34;&gt;《JavaScript: The Good Parts》&lt;/a&gt;的附录B），但偏偏又是一个当今最重要的领域几乎唯一的语言，这就像当初C语言之于UNIX系统一样（或许现在C语言也是如此，只不过UNIX应用开发已经不再那么重要了）。或许这是javascript在抛开那些不成功的设计之外还是很优秀的，又或许这真的只是一个偶然而已。&lt;/p&gt;
+
+&lt;p&gt;上周买了一台二手的3DS，外加一盘二手的世界树迷宫4，终于又开始玩游戏了。其实本来没有买3DS的计划，就因为听到sofmap的营业员声嘶力竭地叫卖“3DS大减价！9800日元！只剩最后三台！”，最终还是买了计划外的东西。（虽然依然犹豫了好一会儿，结果等我去买的时候正好是最后一台，我这优柔寡断的老毛病）。最近一直在想，只因为便宜就买，到底是对还是不对呢？&lt;/p&gt;
+
+&lt;p&gt;写完以后再看，发现不知道这到底是一篇技术文章还是非技术文章了。&lt;/p&gt;
+
+&lt;p&gt;ps：最后再补个小段子。在写拓词那个插件时，最初我想做的是override掉显示答案的函数buildAnwser（技术力扎实的同学肯定发现了这是行不通的，因为Greasemonkey的脚本运行在沙盒环境里），反复改了几次都不成功，这时我才发现，我写的是buildAn&lt;strong&gt;sw&lt;/strong&gt;er，而拓词脚本里的是buildAn&lt;strong&gt;ws&lt;/strong&gt;er……&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>无题</title>
+      <link>http://blog.dyngr.com/blog/2012/08/29/no-title-2</link>
+      <pubDate>Wed, 29 Aug 2012 14:50:28 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2012/08/29/no-title-2</guid>
+      <description>&lt;p&gt;发现一提笔就习惯性地想写一些故作搞笑（而且还特别冷）的文字时，我震惊了。&lt;/p&gt;
+
+&lt;p&gt;明明现实中我是一个沉闷而又无趣的人，却在这里极力地想取悦他人，真是讽刺。不由得地让我想起了《人间失格》的主角，也就是作者太宰治本人，因为生来就无法体会作为“人”的感情，终其一生只能为了博取他人一笑而活，用他自己的话来说就是——&lt;/p&gt;
+
+&lt;p&gt;小丑。&lt;/p&gt;
+
+&lt;p&gt;想想我也差不多，因为除此以外我不知道还有任何其他生存的形式。我不知道我有什么，为了什么，该做什么，以及，这个什么又是什么。&lt;/p&gt;
+
+&lt;p&gt;要说为什么会突然有了这样一篇文章，半是因为今天偶然看到这样一个&lt;a href=&#34;http://blog.liulonnie.net/&#34;&gt;博客&lt;/a&gt;，觉得有点意思。特别是，在找了半天rss链接发现都没有的时候。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>一个Vim插件</title>
+      <link>http://blog.dyngr.com/blog/2012/07/30/y-comment-reader</link>
+      <pubDate>Mon, 30 Jul 2012 23:34:29 +0900</pubDate>
+      
+      <guid>http://blog.dyngr.com/blog/2012/07/30/y-comment-reader</guid>
+      <description>&lt;p&gt;这又是一篇技术博客（千茶学姐对不起了），讲的就是上班无聊的时候，写了一个Vim插件。其实在上篇博客写就的时候，插件也快写完了，然而……就如你所见的又拖了半个月。——写这句话的时候还只是半个月，而接下来的内容又拖了一个星期。&lt;/p&gt;
+
+&lt;p&gt;起因是这样的：周末的时候某知名国际五百强企业的同学来镰仓旅游，顺便也就到我所住的宿舍来玩。那天正巧是端午节，嘉兴出身的某知名国际五百……太麻烦了以下简称某同学自己吃了从国内带来的粽子不说，完全没有惦记到我连个粽子都不带空手而来，于是我们开始玩三国杀。可惜宿舍里的中国人满打满算也只有四口人，看来是不能常规打法了，于是我建议要不模仿大逃杀吧，谁活到最后就算赢。然后第二天上班的时候我就开始看大逃杀，因为发现自己原来还没看过这本小说。虽然仗着全是中文字所以用Vim打开了光明正大的在上班时间看小说，不过难免还是有点心虚，虽然谁也不会来看。为了解决上班看小说容易心虚的难题，于是我用接下来两天的上班时间写了下面的这个插件。&lt;/p&gt;
+
+&lt;p&gt;“还在对着2寸的手机屏幕看小说吗？你已经out啦！当今最流行，最geek的阅读方式，在代码注释框里看小说！CommentReader，今天你geek了吗？”&lt;/p&gt;
+
+&lt;p&gt;比如说像这样：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20120730/1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;或者像这样：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20120730/2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;还有像这样：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20120730/3.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;支持注段落间跳转，自动翻页……&lt;/p&gt;
+
+&lt;p&gt;支持多种语言（不断更新中！）&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog.dyngr.com/images/20120730/more-1.png&#34; alt=&#34;&#34; /&gt;
+&lt;img src=&#34;http://blog.dyngr.com/images/20120730/more-2.png&#34; alt=&#34;&#34; /&gt;
+&lt;img src=&#34;http://blog.dyngr.com/images/20120730/more-3.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;haskell?  scala?  go?  coming soon!&lt;/p&gt;
+
+&lt;p&gt;好吧，其实我也知道这是一个毫无用处的&lt;a href=&#34;https://github.com/gvirus/YCommentReader&#34;&gt;插件&lt;/a&gt;。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

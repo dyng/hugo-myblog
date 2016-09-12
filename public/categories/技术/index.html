@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <title>
+    技术 // Never More: a personal site of Ye Ding
+  </title>
+
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="">
+<meta name="generator" content="Hugo 0.16" />
+
+  <meta property="og:title" content="技术" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="http://blog.dyngr.com/categories/%E6%8A%80%E6%9C%AF/" />
+
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/base-min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/pure-min.css">
+  
+  
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.5.0/grids-responsive-min.css">
+  
+  
+
+  <link rel="stylesheet" href="http://blog.dyngr.com//css/redlounge.css">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,200,100,700,300,500,600,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Libre+Baskerville:400,700,400italic' rel='stylesheet' type='text/css'>
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="http://blog.dyngr.com/categories/%E6%8A%80%E6%9C%AF/index.xml" rel="alternate" type="application/rss+xml" title="Never More: a personal site of Ye Ding" />
+
+    
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/styles/tomorrow-night-bright.min.css">
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+
+  
+
+  
+    <link rel="stylesheet" type="text/css" href="/assets/css/categories.css">
+  
+
+  
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-42770963-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  
+</head>
+
+<body>
+	<div id="layout" class="pure-g">
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+  <div class="header">
+    
+
+	
+
+    <h1 class="brand-title">Never More</h1>
+    <h2 class="brand-tagline">自然体，平常心</h2>
+
+    <nav class="nav">
+      <ul class="nav-list">
+        <li class="nav-item"><span class="nav-item-separator">//</span><a href="http://blog.dyngr.com/">Home</a></li>
+        
+          <li class="nav-item"><span class="nav-item-separator">//</span><a href="/about">About</a></li>
+        
+      </ul>
+    </nav>
+
+    
+    <div class="social-buttons">
+      
+        
+        <a href="https://github.com/dyng" target="_blank"><i class='fa fa-github'></i></a>
+        
+      
+        
+        <a href="https://twitter.com/gbingdu" target="_blank"><i class='fa fa-twitter'></i></a>
+        
+      
+        
+        <a href="http://weibo.com/dyngrr" target="_blank"><i class='fa fa-weibo'></i></a>
+        
+      
+      
+    </div>
+    
+
+  </div>
+</div>
+
+
+    <div class="content pure-u-1 pure-u-md-3-4">
+      <a name="top"></a>
+      
+
+      <div class="posts">
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2016/09/09/how-to-make-a-thread-wait">Java 并发编程笔记：如何让一个线程停下来</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>9</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2016</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<h1 id="前言">前言</h1>
+
+<p>这几天趁辞职和下一份工作的间隙，考虑把 Java 的基础再好好补一下。提到 Java 的进阶使用，并发编程自然是无法绕过的一个主题。在上一份工作中初次接触了 Java，但在实际工作中使用到并发编程的次数屈指可数，所以尽管日常的使用或许没有问题，但对实现细节了解不深，还不能做到“知其所以然”。这一系列文章——尽管在写下这句话时还只有这第一篇文章，但我希望自己能够坚持写成一个系列——是我在探索“所以然”过程中的思考和记录，希望对后来人能够有帮助吧。</p>
+
+<p>因为这篇文章的初衷是学习笔记而非教程，所以不会从创建10个 Thread 打印10句 &ldquo;Hello, world!&rdquo; 开始，而是在每篇文章中选取一个较小的主题，结合自己阅读 JDK 源代码的心得和网上搜索到的资料写成。由于 Java 是个拥有20年历史的古老项目，而且特别注重向后兼容性，因而有新旧 API 共存、某些设计反直觉、设计思想不统一等不利于后来人理解的因素，我也希望能够尽可能从历史的角度来解释“所以然”。</p>
+
+<p>当然因为止于 Java 我还是初学者，而文章里涉及历史时也包含推测的部分，如果在阅读中发现有错误和缺陷的话，还请大家留言指正。</p>
+
+<p>以上差不多是写下这篇文章的初衷，我们开始吧。</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2016/09/09/how-to-make-a-thread-wait"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2014/11/02/interview-for-nintendo">任天堂面试记</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>2</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Nov</span> <span class="post-date-year">2014</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+					        <a class="post-category post-category-%E8%81%8C%E4%B8%9A" href="http://blog.dyngr.com//categories/%E8%81%8C%E4%B8%9A">职业</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<p>找工作也算是尘埃落定了。对于任天堂，很遗憾地在终面挂了，不过这也是一种结果吧。想当初面试之前，在网上搜了很久的面经，包括日文的，都没有找到很有价值的信息，甚至知乎上常有的“在xx公司工作是怎样一番体验”中也没有任天堂，不知是不是大家已经忘了这家从制作花札起家，把“尽人事以听天命”作为社名由来，曾经盛极一时近三年来却一直亏损的百年老铺。这里我姑且记录一下自己的面试经历，算是给后人提供一个参考吧。</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2014/11/02/interview-for-nintendo"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username">我是如何失去价值50000美元的Twitter用户名的</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>8</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Feb</span> <span class="post-date-year">2014</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>9 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<p>这是一篇在Twitter上看到的文章，文章的作者因为使用了独立域名的邮箱地址作为网站的登录邮箱，导致在DNS服务器被攻破时失去了很多网站帐号的控制，最终损失了价值50000美刀的Twitter帐号。独立域名邮箱作为提升逼格的一种重要手段，相信还是有不少程序员对此趋之若鹜的XD 特别推荐倒数第二段作者吸取的教训，很值得一看。</p>
+
+<p>====</p>
+
+<h1 id="我价值50000美元的twitter用户名被盗了">我价值50000美元的Twitter用户名被盗了</h1>
+
+<h1 id="感谢paypal和godaddy">感谢PayPal和GoDaddy</h1>
+
+<p>我有一个很稀有的Twitter用户名，<strong>@N</strong>。是的，只有一个字母。曾经有人出价50000美元向我购买这个用户名。也有很多人尝试盗我的帐号，密码重置邮件出现在我的邮箱里是一件很稀疏平常的事。然而今天，这个用户名已经不再属于我。我被迫放弃了它。</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2014/02/08/how-i-lost-my-50000-dollars-twitter-username"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2013/11/03/format-string-attack">一次格式化字符串攻击（上）</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>3</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Nov</span> <span class="post-date-year">2013</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<p>最近大部分时间都花在做<a href="http://ksnctf.sweetduet.info">这组题</a>上了（当然还有<a href="http://en.wikipedia.org/wiki/Grand_Theft_Auto_V">GTA5</a>，不愧是2.6亿打造出来的游戏啊），题目的类型很丰富，涉及密码破解、反汇编、sql注入、hash碰撞等等，而且大部分都包含提示，搜索一下关键词就能找到破解的线索，或者真不济……还有公司里同事所写的<a href="http://ichirin2501.hatenablog.com/entry/2012/06/11/001540">解题报告</a> :)</p>
+
+<p>今天在这里主要记载一下<a href="http://ksnctf.sweetduet.info/problem/4">第四题</a>的解题过程，因为在这题上花费了最多的时间，而且又是我比较喜欢的汇编级别的漏洞利用，当然最重要的是，借由这题了解了一种过去不知道的攻击方式——格式化字符串攻击（format string attack）。</p>
+
+<p>注：本文需要一定程度的汇编知识，虽然尽可能地做到详细解释，不过对汇编和c语言的汇编表示不太熟悉的朋友强烈推荐看一下<a href="http://book.douban.com/subject/5407246/">CSAPP</a>的第三章。</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2013/11/03/format-string-attack"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2013/09/26/junio-c-hamano-interview">关于滨野纯的访谈</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>26</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2013</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>10 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<p><a href="http://blog.dyngr.com/blog/2013/09/13/git-diffs-options">上一篇</a>文章中提到，最近正在阅读<a href="http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809">《入门Git》</a>，搜索作者<a href="https://plus.google.com/108182106411180467879/posts">滨野纯</a>相关信息的时候搜到了以下这篇著名博客作家<a href="http://ja.wikipedia.org/wiki/%E5%B0%8F%E9%A3%BC%E5%BC%BE">小饲弹</a>对滨野纯的访谈，里面提及了滨野纯当初参与Git项目时的轶事，以及他对于开源项目的看法。特别是滨野纯说“Git是他第一次有一定规模地向开源项目提交代码”，很是鼓舞人——对那些想参与开源项目但缺乏信心的同学。所以趁闲把访谈全文翻译了一下，原文请见：</p>
+
+<p><a href="http://gihyo.jp/dev/serial/01/alpha-geek/0040">#22 Gitメンテナ 濱野純：小飼弾のアルファギークに逢いたい&hearts;</a></p>
+
+<p>ps：至于最后的 &hearts; 我就不吐槽了……</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2013/09/26/junio-c-hamano-interview"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2013/09/13/git-diffs-options">diff的两个参数</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>13</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2013</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>5 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<p>最近在读<a href="https://github.com/gitster">滨野纯</a>所著的<a href="http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809">《入门Git》</a>，很有意思，主要集中于书中散见各处的作者提及Git当初的设计思想和实现过程的时候。我一直相信，理解一件事物最好的方式就是理解历史。作者作为在Git尚且只是雏形时（2005年7月末）就从Linus手中接过Git的维护工作，并在接下来的数年中将其发扬光大的关键人物（ <em>Linus: &ldquo;In the last four years under his stewardship, git has flourished and become not just a technically advanced source control manager, but one that is a pleasure to use as well.&rdquo;</em> ），在书中谈论当初开发时的想法和过程自然是信手拈来——</p>
+
+<p>会这么期待说明我还是太天真了。我可以感受到作者希望让这本书“名符其实”的良苦用心，但事实证明写好入门书的权力永远都只属于入门者，作者从来就不曾是一名“Git入门者”自然不会理解初学者最需要的是什么、最困惑的是什么，一上来就讲 Three-way Merge 的原理这是要闹哪样……</p>
+
+<p>不过还是有这么一章，相对完整地讲述了当初的设计思想，并提到了diff的两个我之前并不知道的参数，让我觉得值得一写。其实对于Git的diff和log命令，日常使用在大多数情况无参数的输出已经足够，就我个人的经验，最常使用的参数也不外乎于<code>-p</code>，<code>--name-only</code>，至多再修改一下<code>--pretty</code>。然而这一章告诉我，diff能做的不止于此，或者更确切地说，Git当初的目标就考虑得比这更远。Git试图成为的是一个理解历史的<strong>文件系统</strong>[^1]。</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2013/09/13/git-diffs-options"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2013/08/24/how-programmer-names">程序员的命名趣味</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>24</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Aug</span> <span class="post-date-year">2013</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>6 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<blockquote>
+<p>……孔乙己显出极高兴的样子，将两个指头的长指甲敲着柜台，点头说，“对呀对呀！……exec有六样写法，你知道么？”我愈不耐烦了，努着嘴走远。孔乙己刚用指甲蘸了酒，想在柜上写字，见我毫不热心，便又叹一口气，显出极惋惜的样子。</p>
+</blockquote>
+
+<p>这自然只是我的杜撰，不过 Unix 系统的 exec 确实有[六种写法][1]，想必当年也是害苦了不少系统程序员。其实今天我想说的，正是关于命名的事儿。相信以下已经成为程序员的共识：</p>
+
+<p><strong>好的命名对提高可读性事半功倍，坏的命名则是代码晦涩的一大帮凶。</strong></p>
+
+<p>但取一个好的名字又谈何容易，也无怪乎某朋友开玩笑说“（写代码）瓶颈是取变量名”了。不过凡事，博古大抵可以通今，所以这里就整理一下 *nix 系统中一些有趣的命令以及它们有趣的名字，总结一下所谓的“命名范式”，或许对大家今后的命名之道有用。</p>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2013/08/24/how-programmer-names"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
+        
+      </div>
+
+      <div class="footer">
+	<hr class="thin" />
+	<div class="pure-menu pure-menu-horizontal pure-menu-open">
+		<ul class="footer-menu">
+		
+		</ul>
+	</div>
+
+	<p>&copy; 2016. All rights reserved.</p>
+</div>
+    </div>
+  </div>
+  
+</body>
+</html>
