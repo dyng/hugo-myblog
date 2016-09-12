@@ -2,10 +2,11 @@
 baseurl = "http://blog.dyngr.com/"
 languageCode = "en-us"
 title = "Never More: a personal site of Ye Ding"
-theme = "hugo-me-theme"
+theme = "hugo-redlounge"
 paginate = 8
 paginatePath = "page"
 googleAnalytics = "UA-42770963-1"
+disqusShortname = "dyngblog"
 enableEmoji = true
 hasCJKLanguage = true
 footnotereturnlinkcontents = "↩"
@@ -15,60 +16,30 @@ footnotereturnlinkcontents = "↩"
 
 [params]
 
-    # You may choose a color scheme for your site.
-    # Available schemes are: gray, red, orange, yellow, green, cyan, blue, magenta, brown
-    colorscheme = "blue"
-
-    # To provide some metadata for search engines feel free to add a few
-    # information about you and your website.
-    author = "Ye Ding"
-    description = "Just yet another personal site"
-    keywords = "dyng, blog, personal site, technical, java"
-
-    # disqus
-    disqusShortname = "dyngblog"
-
-    [params.syntax]
-        style = "atom-one-dark"
-
     # Sidebar
-    # Main settings
-    [params.sidebar]
-        name = "Never More"
-        description = "自然体，平常心"
+    sidebartitle = "Never More"
+    sidebartagline = "自然体，平常心"
 
-    # Navigation
-    # [[params.sidebar.navigation]]
-    #     label = "About"
-    #     link = "/about"
+    # Custom Css
+    categoriescss = "/assets/css/categories.css"
 
-    # Social links
-    [[params.sidebar.social]]
-        label = "Github"
-        icon = "fa-github"
-        link = "https://github.com/dyng"
+    # Sections
+    [[menu.main]]
+        name = "About"
+        url = "/about"
 
-    [[params.sidebar.social]]
-        label = "Twitter"
-        icon = "fa-twitter"
-        link = "https://twitter.com/gbingdu"
+    # Social
+    [[menu.social]]
+        pre = "<i class='fa fa-github'></i>"
+        url = "https://github.com/dyng"
+        identifier = "github"
 
-    [[params.sidebar.social]]
-        label = "Weibo"
-        icon = "fa-weibo"
-        link = "http://weibo.com/dyngrr"
+    [[menu.social]]
+        pre = "<i class='fa fa-twitter'></i>"
+        url = "https://twitter.com/gbingdu"
+        identifier = "twitter"
 
-    [[params.sidebar.social]]
-        label = "Email"
-        icon = "fa-envelope"
-        link = "mailto:ye.ding.1986@gmail.com"
-
-    # 404 page
-    [params.error]
-        title = "404"
-        intro = "Oops... Page not found!"
-        text = "We are sorry, but the page you are looking for might have been:\n\n - removed,\n - had its name changed\n - or is temporarily unavailable."
-
-    # Footer
-    [params.footer]
-        copyright = "Author [@dyng](http://blog.dyngr.com/). Powered by [Hugo](https://github.com/spf13/hugo) and [Me](https://github.com/aerohub/hugo-me-theme). All rights reserved."
+    [[menu.social]]
+        pre = "<i class='fa fa-weibo'></i>"
+        url = "http://weibo.com/dyngrr"
+        identifier = "weibo"
