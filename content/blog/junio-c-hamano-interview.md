@@ -6,11 +6,11 @@ categories = ["技术"]
 
 [上一篇](http://blog.dyngr.com/blog/2013/09/13/git-diffs-options)文章中提到，最近正在阅读[《入门Git》](http://www.amazon.co.jp/%E5%85%A5%E9%96%80Git-%E6%BF%B1%E9%87%8E-%E7%B4%94-Junio-Hamano/dp/4798023809)，搜索作者[滨野纯](https://plus.google.com/108182106411180467879/posts)相关信息的时候搜到了以下这篇著名博客作家[小饲弹](http://ja.wikipedia.org/wiki/%E5%B0%8F%E9%A3%BC%E5%BC%BE)对滨野纯的访谈，里面提及了滨野纯当初参与Git项目时的轶事，以及他对于开源项目的看法。特别是滨野纯说“Git是他第一次有一定规模地向开源项目提交代码”，很是鼓舞人——对那些想参与开源项目但缺乏信心的同学。所以趁闲把访谈全文翻译了一下，原文请见：
 
-[#22　Gitメンテナ　濱野 純：小飼弾のアルファギークに逢いたい&hearts;](http://gihyo.jp/dev/serial/01/alpha-geek/0040)
+[#22 Gitメンテナ 濱野純：小飼弾のアルファギークに逢いたい&hearts;](http://gihyo.jp/dev/serial/01/alpha-geek/0040)
 
 ps：至于最后的 &hearts; 我就不吐槽了……
 
-<!-- more -->
+<!--more-->
 
 <br /><br /><br /><br />
 
