@@ -19,6 +19,7 @@ footnotereturnlinkcontents = "↩"
     # Sidebar
     sidebartitle = "Never More"
     sidebartagline = "自然体，平常心"
+    sidebarbackground = "/images/cover.jpg"
 
     # Custom Css
     categoriescss = "/assets/css/categories.css"
