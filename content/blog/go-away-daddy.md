@@ -1,7 +1,7 @@
 +++
 title = "走开，Daddy"
 date = "2013-08-06T15:47:00+09:00"
-categories = ["杂谈"]
+categories = ["技术"]
 +++
 
 ![](/images/20130807/goawaydaddy.jpg)

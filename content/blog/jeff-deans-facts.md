@@ -1,6 +1,7 @@
 +++
 date = "2012-11-29T16:04:16+09:00"
 title = "Jeff Dean的二三事"
+categories = ["技术"]
 +++
 
 最早是某[同事](http://chen-xiao.com/)发来的[链接](http://www.quora.com/Jeff-Dean/What-are-all-the-Jeff-Dean-facts)，结果让我笑了一晚上……看看也不是太长，于是翻译分享一下。注：比较Geek，千茶学姐对不住了！
