@@ -24,6 +24,9 @@ footnotereturnlinkcontents = "↩"
     # Custom Css
     categoriescss = "/assets/css/categories.css"
 
+    # Highlight
+    highlightStyle = "atom-one-dark"
+
     # Sections
     [[menu.main]]
         name = "About"
