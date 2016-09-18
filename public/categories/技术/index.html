@@ -46,7 +46,7 @@
 
     
   
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/styles/tomorrow-night-bright.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/atom-one-dark.min.css">
   
   <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.7/highlight.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
@@ -147,6 +147,55 @@ ga('send', 'pageview');
       
 
       <div class="posts">
+        
+          <section  class="post">
+            <header class="post-header">
+            
+            <h1 class="post-title">
+              <a href="/blog/2016/09/15/java-forkjoinpool-internals">Java 并发编程笔记：如何使用 ForkJoinPool 以及原理</a>
+            </h1>
+            </header>
+            <p class="post-meta">
+            	
+		          <span class="post-date">
+		            <span class="post-date-day"><sup>15</sup></span><span class="post-date-separator">/</span><span class="post-date-month">Sep</span> <span class="post-date-year">2016</span>
+		          </span>
+      				
+      				
+      					
+      				
+              
+                <span class="post-reading-time"><i class="fa fa-clock-o"></i> <em>7 min. read</em></span>
+              
+      				
+      					<div class="post-categories">
+				        
+      					
+					        <a class="post-category post-category-%E6%8A%80%E6%9C%AF" href="http://blog.dyngr.com//categories/%E6%8A%80%E6%9C%AF">技术</a>
+      					
+      					</div>
+      				
+            </p>
+            <article class="post-summary">
+            	<h1 id="前言">前言</h1>
+
+<p>Java 1.7 引入了一种新的并发框架—— Fork/Join Framework。</p>
+
+<p>本文的主要目的是介绍 ForkJoinPool 的适用场景，实现原理，以及示例代码。</p>
+
+<p><em>TLDR;</em> 如果觉得文章太长的话，以下就是<strong>结论</strong>：</p>
+
+<ul>
+<li><code>ForkJoinPool</code> 不是为了替代 <code>ExecutorService</code>，而是它的补充，在某些应用场景下性能比 <code>ExecutorService</code> 更好。（见 <em><a href="http://www.javaworld.com/article/2078440/enterprise-java/java-tip-when-to-use-forkjoinpool-vs-executorservice.html?page=2">Java Tip: When to use ForkJoinPool vs ExecutorService</a></em> ）</li>
+<li><strong><code>ForkJoinPool</code> 主要用于实现“分而治之”的算法，特别是分治之后递归调用的函数</strong>，例如 quick sort 等。</li>
+<li><code>ForkJoinPool</code> 最适合的是计算密集型的任务，如果存在 I/O，锁，<code>sleep()</code> 等会造成线程长时间阻塞的情况时，最好配合使用 <code>ManagedBlocker</code>。</li>
+</ul>
+
+            </article>
+			<div class="read-more-link">
+				<a href="/blog/2016/09/15/java-forkjoinpool-internals"><span class="read-more-slashes">//</span>Read More...</a>
+			</div>
+          </section>
         
           <section  class="post">
             <header class="post-header">
