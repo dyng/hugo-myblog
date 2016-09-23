@@ -17,7 +17,7 @@ Java 1.7 引入了一种新的并发框架—— Fork/Join Framework。
 
 - `ForkJoinPool` 不是为了替代 `ExecutorService`，而是它的补充，在某些应用场景下性能比 `ExecutorService` 更好。（见 *[Java Tip: When to use ForkJoinPool vs ExecutorService](http://www.javaworld.com/article/2078440/enterprise-java/java-tip-when-to-use-forkjoinpool-vs-executorservice.html?page=2)* ）
 - **`ForkJoinPool` 主要用于实现“分而治之”的算法，特别是分治之后递归调用的函数**，例如 quick sort 等。
-- `ForkJoinPool` 最适合的是计算密集型的任务，如果存在 I/O，锁，`sleep()` 等会造成线程长时间阻塞的情况时，最好配合使用 `ManagedBlocker`。
+- `ForkJoinPool` 最适合的是计算密集型的任务，如果存在 I/O，线程间同步，`sleep()` 等会造成线程长时间阻塞的情况时，最好配合使用 `ManagedBlocker`。
 
 <!--more-->
 
@@ -25,7 +25,7 @@ Java 1.7 引入了一种新的并发框架—— Fork/Join Framework。
 
 首先介绍的是大家最关心的 Fork/Join Framework 的使用方法，如果对使用方法已经很熟悉的话，可以跳过这一节，直接阅读[原理](#原理)。
 
-用一个特别简单的求整数数组所有元素之和来作为我们现在需要解决的问题。
+用一个特别简单的求整数数组所有元素之和来作为我们现在需要解决的问题吧。
 
 ## 问题
 
@@ -59,7 +59,7 @@ public class Main {
 }
 ```
 
-接下来就是我们的重头——Plain Old For-loop Calculator，简称 *POFLC* 的实现了。（这其实是个段子，和主题完全无关，感兴趣的请见文末的[彩蛋](#彩蛋)）
+接下来就是我们的 Plain Old For-loop Calculator，简称 *POFLC* 的实现了。（这其实是个段子，和主题完全无关，感兴趣的请见文末的[彩蛋](#彩蛋)）
 
 ```java
 public class ForLoopCalculator implements Calculator {
@@ -203,7 +203,7 @@ public class ForkJoinCalculator implements Calculator {
 - `fork()`：开启一个新线程（或是重用线程池内的空闲线程），将任务交给该线程处理。
 - `join()`：等待该任务的处理线程处理完毕，获得返回值。
 
-以上模型可以解释多线程运行的事实，但有一个很明显的问题
+以上模型似乎可以（？）解释 ForkJoinPool 能够多线程执行的事实，但有一个很明显的问题
 
 > **当任务分解得越来越细时，所需要的线程数就会越来越多，而且大部分线程处于等待状态。**
 
@@ -213,7 +213,15 @@ public class ForkJoinCalculator implements Calculator {
 System.out.println(pool.getPoolSize());
 ```
 
-这会显示当前线程池的大小，在我的机器上这个值是4，也就是说只有4个工作线程。这个矛盾可以导出，**我们的假设是错误的，并不是每个 `fork()` 都会促成一个新线程被创建，而每个 `join()` 也不是一定会造成线程被阻塞。**Fork/Join Framework 的实现算法并不是那么“显然”，而是一个更加复杂的算法。这个算法的名字就叫做 *work stealing* 算法。
+这会显示当前线程池的大小，在我的机器上这个值是4，也就是说只有4个工作线程。甚至即使我们在初始化 pool 时指定所使用的线程数为1时，上述程序也没有任何问题——除了变成了一个串行程序以外。
+
+```java
+public ForkJoinCalculator() {
+    pool = new ForkJoinPool(1);
+}
+```
+
+这个矛盾可以导出，**我们的假设是错误的，并不是每个 `fork()` 都会促成一个新线程被创建，而每个 `join()` 也不是一定会造成线程被阻塞。**Fork/Join Framework 的实现算法并不是那么“显然”，而是一个更加复杂的算法——这个算法的名字就叫做 *work stealing* 算法。
 
 work stealing 算法在 Doung Lea 的[论文](http://gee.cs.oswego.edu/dl/papers/fj.pdf)中有详细的描述，以下是我在结合 Java 1.8 代码的阅读以后——现有代码的实现有一部分相比于论文中的描述发生了变化——得到的相对通俗的解释：
 
@@ -248,23 +256,28 @@ public final ForkJoinTask<V> fork() {
 
 `join()` 的工作则复杂得多，也是 `join()` 可以使得线程免于被阻塞的原因——不像同名的 `Thread.join()`。
 
-1. 如果 `join()` 发生在ForkJoinThread以外，则阻塞当前线程，等待任务完成。
-2. 如果任务已经完成，直接返回结果。
-3. 如果任务在自己的工作队列里面，则完成它。
-4. 如果任务被其他的工作线程偷走，则窃取它剩下的任务（以 *FIFO* 方式），执行任务，以期帮助它早日完成欲 join 的任务。
+1. 检查调用 `join()` 的线程是否是 ForkJoinThread 线程。如果不是（例如 main 线程），则阻塞当前线程，等待任务完成。如果是，则不阻塞。
+2. 查看任务的完成状态，如果已经完成，直接返回结果。
+3. 如果任务尚未完成，但处于自己的工作队列内，则完成它。
+4. 如果任务已经被其他的工作线程偷走，则窃取这个小偷的工作队列内的任务（以 *FIFO* 方式），执行，以期帮助它早日完成欲 join 的任务。
 5. 如果偷走任务的小偷也已经把自己的任务全部做完，正在等待需要 join 的任务时，则找到小偷的小偷，帮助它完成它的任务。
+6. 递归地执行第5步。
 
 将上述流程画成序列图的话就是这个样子：
 
 ![](/images/20160915/flowchart-of-join.png)
 
-再来介绍一下将任务提交到 pool 时使用的 `submit()` 函数
+以上就是 `fork()` 和 `join()` 的原理，这可以解释 ForkJoinPool 在递归过程中的执行逻辑，但还有一个问题
+
+> **最初的任务是 push 到哪个线程的工作队列里的？**
+
+这就涉及到 `submit()` 函数的实现方法了
 
 #### submit
 
 其实除了前面介绍过的每个工作线程自己拥有的工作队列以外，`ForkJoinPool` 自身也拥有工作队列，这些工作队列的作用是用来接收由外部线程（非 `ForkJoinThread` 线程）提交过来的任务，而这些工作队列被称为 *submitting queue* 。
 
-`submit()` 和 `fork()` 其实没有本质区别，只是提交对象变成了 submitting queue 而已（还有一些同步，初始化的操作）。submitting queue 和其他 work queue 一样，是工作线程”窃取“的对象，因此当其中的任务被一个工作线程成功窃取时，就意味着执行开始了。
+`submit()` 和 `fork()` 其实没有本质区别，只是提交对象变成了 submitting queue 而已（还有一些同步，初始化的操作）。submitting queue 和其他 work queue 一样，是工作线程”窃取“的对象，因此当其中的任务被一个工作线程成功窃取时，就意味着提交的任务真正开始进入执行阶段。
 
 # 总结
 
