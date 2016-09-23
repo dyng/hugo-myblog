@@ -188,7 +188,7 @@ ga('send', 'pageview');
 <ul>
 <li><code>ForkJoinPool</code> 不是为了替代 <code>ExecutorService</code>，而是它的补充，在某些应用场景下性能比 <code>ExecutorService</code> 更好。（见 <em><a href="http://www.javaworld.com/article/2078440/enterprise-java/java-tip-when-to-use-forkjoinpool-vs-executorservice.html?page=2">Java Tip: When to use ForkJoinPool vs ExecutorService</a></em> ）</li>
 <li><strong><code>ForkJoinPool</code> 主要用于实现“分而治之”的算法，特别是分治之后递归调用的函数</strong>，例如 quick sort 等。</li>
-<li><code>ForkJoinPool</code> 最适合的是计算密集型的任务，如果存在 I/O，锁，<code>sleep()</code> 等会造成线程长时间阻塞的情况时，最好配合使用 <code>ManagedBlocker</code>。</li>
+<li><code>ForkJoinPool</code> 最适合的是计算密集型的任务，如果存在 I/O，线程间同步，<code>sleep()</code> 等会造成线程长时间阻塞的情况时，最好配合使用 <code>ManagedBlocker</code>。</li>
 </ul>
 
             </article>

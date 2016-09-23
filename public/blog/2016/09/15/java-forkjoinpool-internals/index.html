@@ -237,14 +237,14 @@ ga('send', 'pageview');
 <ul>
 <li><code>ForkJoinPool</code> 不是为了替代 <code>ExecutorService</code>，而是它的补充，在某些应用场景下性能比 <code>ExecutorService</code> 更好。（见 <em><a href="http://www.javaworld.com/article/2078440/enterprise-java/java-tip-when-to-use-forkjoinpool-vs-executorservice.html?page=2">Java Tip: When to use ForkJoinPool vs ExecutorService</a></em> ）</li>
 <li><strong><code>ForkJoinPool</code> 主要用于实现“分而治之”的算法，特别是分治之后递归调用的函数</strong>，例如 quick sort 等。</li>
-<li><code>ForkJoinPool</code> 最适合的是计算密集型的任务，如果存在 I/O，锁，<code>sleep()</code> 等会造成线程长时间阻塞的情况时，最好配合使用 <code>ManagedBlocker</code>。</li>
+<li><code>ForkJoinPool</code> 最适合的是计算密集型的任务，如果存在 I/O，线程间同步，<code>sleep()</code> 等会造成线程长时间阻塞的情况时，最好配合使用 <code>ManagedBlocker</code>。</li>
 </ul>
 
 <h1 id="使用">使用</h1>
 
 <p>首先介绍的是大家最关心的 Fork/Join Framework 的使用方法，如果对使用方法已经很熟悉的话，可以跳过这一节，直接阅读<a href="#原理">原理</a>。</p>
 
-<p>用一个特别简单的求整数数组所有元素之和来作为我们现在需要解决的问题。</p>
+<p>用一个特别简单的求整数数组所有元素之和来作为我们现在需要解决的问题吧。</p>
 
 <h2 id="问题">问题</h2>
 
@@ -278,7 +278,7 @@ ga('send', 'pageview');
 }
 </code></pre>
 
-<p>接下来就是我们的重头——Plain Old For-loop Calculator，简称 <em>POFLC</em> 的实现了。（这其实是个段子，和主题完全无关，感兴趣的请见文末的<a href="#彩蛋">彩蛋</a>）</p>
+<p>接下来就是我们的 Plain Old For-loop Calculator，简称 <em>POFLC</em> 的实现了。（这其实是个段子，和主题完全无关，感兴趣的请见文末的<a href="#彩蛋">彩蛋</a>）</p>
 
 <pre><code class="language-java">public class ForLoopCalculator implements Calculator {
     public long sumUp(long[] numbers) {
@@ -421,7 +421,7 @@ ga('send', 'pageview');
 <li><code>join()</code>：等待该任务的处理线程处理完毕，获得返回值。</li>
 </ul>
 
-<p>以上模型可以解释多线程运行的事实，但有一个很明显的问题</p>
+<p>以上模型似乎可以（？）解释 ForkJoinPool 能够多线程执行的事实，但有一个很明显的问题</p>
 
 <blockquote>
 <p><strong>当任务分解得越来越细时，所需要的线程数就会越来越多，而且大部分线程处于等待状态。</strong></p>
@@ -432,7 +432,14 @@ ga('send', 'pageview');
 <pre><code class="language-java">System.out.println(pool.getPoolSize());
 </code></pre>
 
-<p>这会显示当前线程池的大小，在我的机器上这个值是4，也就是说只有4个工作线程。这个矛盾可以导出，<strong>我们的假设是错误的，并不是每个 <code>fork()</code> 都会促成一个新线程被创建，而每个 <code>join()</code> 也不是一定会造成线程被阻塞。</strong>Fork/Join Framework 的实现算法并不是那么“显然”，而是一个更加复杂的算法。这个算法的名字就叫做 <em>work stealing</em> 算法。</p>
+<p>这会显示当前线程池的大小，在我的机器上这个值是4，也就是说只有4个工作线程。甚至即使我们在初始化 pool 时指定所使用的线程数为1时，上述程序也没有任何问题——除了变成了一个串行程序以外。</p>
+
+<pre><code class="language-java">public ForkJoinCalculator() {
+    pool = new ForkJoinPool(1);
+}
+</code></pre>
+
+<p>这个矛盾可以导出，<strong>我们的假设是错误的，并不是每个 <code>fork()</code> 都会促成一个新线程被创建，而每个 <code>join()</code> 也不是一定会造成线程被阻塞。</strong>Fork/Join Framework 的实现算法并不是那么“显然”，而是一个更加复杂的算法——这个算法的名字就叫做 <em>work stealing</em> 算法。</p>
 
 <p>work stealing 算法在 Doung Lea 的<a href="http://gee.cs.oswego.edu/dl/papers/fj.pdf">论文</a>中有详细的描述，以下是我在结合 Java 1.8 代码的阅读以后——现有代码的实现有一部分相比于论文中的描述发生了变化——得到的相对通俗的解释：</p>
 
@@ -469,24 +476,31 @@ ga('send', 'pageview');
 <p><code>join()</code> 的工作则复杂得多，也是 <code>join()</code> 可以使得线程免于被阻塞的原因——不像同名的 <code>Thread.join()</code>。</p>
 
 <ol>
-<li>如果 <code>join()</code> 发生在ForkJoinThread以外，则阻塞当前线程，等待任务完成。</li>
-<li>如果任务已经完成，直接返回结果。</li>
-<li>如果任务在自己的工作队列里面，则完成它。</li>
-<li>如果任务被其他的工作线程偷走，则窃取它剩下的任务（以 <em>FIFO</em> 方式），执行任务，以期帮助它早日完成欲 join 的任务。</li>
+<li>检查调用 <code>join()</code> 的线程是否是 ForkJoinThread 线程。如果不是（例如 main 线程），则阻塞当前线程，等待任务完成。如果是，则不阻塞。</li>
+<li>查看任务的完成状态，如果已经完成，直接返回结果。</li>
+<li>如果任务尚未完成，但处于自己的工作队列内，则完成它。</li>
+<li>如果任务已经被其他的工作线程偷走，则窃取这个小偷的工作队列内的任务（以 <em>FIFO</em> 方式），执行，以期帮助它早日完成欲 join 的任务。</li>
 <li>如果偷走任务的小偷也已经把自己的任务全部做完，正在等待需要 join 的任务时，则找到小偷的小偷，帮助它完成它的任务。</li>
+<li>递归地执行第5步。</li>
 </ol>
 
 <p>将上述流程画成序列图的话就是这个样子：</p>
 
 <p><img src="/images/20160915/flowchart-of-join.png" alt="" /></p>
 
-<p>再来介绍一下将任务提交到 pool 时使用的 <code>submit()</code> 函数</p>
+<p>以上就是 <code>fork()</code> 和 <code>join()</code> 的原理，这可以解释 ForkJoinPool 在递归过程中的执行逻辑，但还有一个问题</p>
+
+<blockquote>
+<p><strong>最初的任务是 push 到哪个线程的工作队列里的？</strong></p>
+</blockquote>
+
+<p>这就涉及到 <code>submit()</code> 函数的实现方法了</p>
 
 <h4 id="submit">submit</h4>
 
 <p>其实除了前面介绍过的每个工作线程自己拥有的工作队列以外，<code>ForkJoinPool</code> 自身也拥有工作队列，这些工作队列的作用是用来接收由外部线程（非 <code>ForkJoinThread</code> 线程）提交过来的任务，而这些工作队列被称为 <em>submitting queue</em> 。</p>
 
-<p><code>submit()</code> 和 <code>fork()</code> 其实没有本质区别，只是提交对象变成了 submitting queue 而已（还有一些同步，初始化的操作）。submitting queue 和其他 work queue 一样，是工作线程”窃取“的对象，因此当其中的任务被一个工作线程成功窃取时，就意味着执行开始了。</p>
+<p><code>submit()</code> 和 <code>fork()</code> 其实没有本质区别，只是提交对象变成了 submitting queue 而已（还有一些同步，初始化的操作）。submitting queue 和其他 work queue 一样，是工作线程”窃取“的对象，因此当其中的任务被一个工作线程成功窃取时，就意味着提交的任务真正开始进入执行阶段。</p>
 
 <h1 id="总结">总结</h1>
 
