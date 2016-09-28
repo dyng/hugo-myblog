@@ -1,7 +1,7 @@
 # Site settings
 baseurl = "http://blog.dyngr.com/"
 languageCode = "en-us"
-title = "Never More: a personal site of Ye Ding"
+title = "Never More"
 theme = "hugo-redlounge"
 paginate = 8
 paginatePath = "page"
