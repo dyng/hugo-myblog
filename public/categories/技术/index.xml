@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>技术 on Never More: a personal site of Ye Ding</title>
+    <title>技术 on Never More</title>
     <link>http://blog.dyngr.com/categories/%E6%8A%80%E6%9C%AF/</link>
-    <description>Recent content in 技术 on Never More: a personal site of Ye Ding</description>
+    <description>Recent content in 技术 on Never More</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Thu, 15 Sep 2016 17:58:31 +0800</lastBuildDate>

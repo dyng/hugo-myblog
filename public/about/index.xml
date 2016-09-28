@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Abouts on Never More: a personal site of Ye Ding</title>
+    <title>Abouts on Never More</title>
     <link>http://blog.dyngr.com/about/</link>
-    <description>Recent content in Abouts on Never More: a personal site of Ye Ding</description>
+    <description>Recent content in Abouts on Never More</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <atom:link href="http://blog.dyngr.com/about/index.xml" rel="self" type="application/rss+xml" />
