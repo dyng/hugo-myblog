@@ -2,7 +2,7 @@
 Categories = ["技术"]
 Tags = ["Java"]
 date = "2016-10-29T15:00:59+08:00"
-title = "Java并发编程笔记：JMH性能测试框架"
+title = "Java 并发编程笔记：JMH 性能测试框架"
 
 +++
 

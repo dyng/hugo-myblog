@@ -10,7 +10,7 @@
     <atom:link href="http://blog.dyngr.com/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Java并发编程笔记：JMH性能测试框架</title>
+      <title>Java 并发编程笔记：JMH 性能测试框架</title>
       <link>http://blog.dyngr.com/blog/2016/10/29/introduction-of-jmh</link>
       <pubDate>Sat, 29 Oct 2016 15:00:59 +0800</pubDate>
       
